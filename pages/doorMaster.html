@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="search-box">
+				<div class="search-row-box">
+					<div class="search-list">
+						<div class="search-name">社区名称：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="communityName" placeholder="社区名称" />
+						</div>
+					</div>
+					<div class="search-btn-box">
+						<div class="btn" onclick="search();">查询</div>
+						<div class="btn" onclick="reloadPage();">重置</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="doorMaster();">新建</div>
+					<div class="btn" onclick="del();">删除</div>
+				</div>
+			</div>
+			<div class="kjy-data-box" v-if="isInit">
+				<div class="no-data-box" v-if="dataList.length == 0">
+					<div class="no-data-inner-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有门禁哦</div>
+					</div>
+				</div>
+				<div class="kjy-data-inner-box" v-else>
+					<div class="kjy-table">
+						<table>
+							<thead>
+								<tr>
+									<th class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',allIsActive?'icon-checked':'']" v-on:click="selectAllData()"></div>序号</th>
+									<th>门禁名称</th>
+									<th>序列号</th>
+									<th>设备类型</th>
+									<th>归属地</th>
+									<th>设备状态</th>
+									<th>所属社区</th>
+									<th>创建时间</th>
+								</tr>
+							</thead>
+
+							<tbody id="tbody">
+								<tr v-for="(t,i) in dataList">
+									<td class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',t.isActive?'icon-checked':'']" v-on:click="selectOneData(t)"></div>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+									<td>{{t.deviceName}}</td>
+									<td>{{t.deviceSn}}</td>
+									<td>{{t.typeText}}</td>
+									<td v-if="t.type == 2">社区</td>
+									<td v-if="t.type == 3">{{t.buildingCode}}号楼{{t.unit}}单元</td>
+									<td>{{t.status?t.statusText:"无"}}</td>
+									<td>{{t.communityName}}</td>
+									<td>{{t.createTime}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="page-box"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		loadVue(".v-dom", param);
+
+		//新建
+		function doorMaster() {
+			openMask("parts/doorMaster", "新建门禁", ["410px", "348px"]);
+		}
+
+		//删除
+		function del(obj) {
+			openConfirm("确定删除该门禁吗？", function() {
+				var param = {
+					idList: [obj.id]
+				}
+				request("POST", "facility/doorMaster/delete.do", param, true, function(res) {
+					loadData();
+					layer.closeAll('dialog');
+				}, function(res) {
+					layer.msg("删除失败");
+				});
+			})
+		}
+
+		//加载数据
+		function loadData() {
+			var param = {
+				page: pageNo,
+				communityName: $("#communityName").val()
+			};
+			request("POST", "facility/doorMaster/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+					if(dataList[i].type == "2") {
+						dataList[i].typeText = "社区设备";
+					} else if(dataList[i].type == "3") {
+						dataList[i].typeText = "单元设备";
+					}
+					if(dataList[i].status == "0") {
+						dataList[i].statusText = "离线";
+					} else if(dataList[i].status == "1") {
+						dataList[i].statusText = "在线";
+					}
+				}
+				setData.dataList = dataList;
+				setData.allIsActive = false;
+				setData.isInit = true;
+				loadPage();
+			}, function(res) {
+				layer.msg("门禁加载失败");
+			})
+		}
+
+		loadData();
+	</script>
+
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="mask-box v-dom" v-cloak>
+			<div class="mask-inner-box">
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">物业名称：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="name" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">负责人：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="charger" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">手机号：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="chargerTelephone" value="" class="required regular-telephone" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="text">详细地址：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="address" value="" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="text">备注：</span></div>
+					<div class="mask-list-value">
+						<textarea name="" rows="" cols="" id="description"></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="save();">保存</div>
+					<div class="btn" onclick="closeMask();">返回</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		loadVue(".v-dom", param);
+
+		//保存
+		function save() {
+			if(checkRegular()) {
+				var parentData = setData.parentData;
+				var param = {
+					name: $("#name").val(),
+					address: $("#address").val(),
+					charger: $("#charger").val(),
+					chargerTelephone: $("#chargerTelephone").val(),
+					description: $("#description").val()
+				};
+				if(parentData) {
+					param.id = parentData.id;
+				}
+				request("POST", "property/pmc/saveOrUpdate.do", param, true, function(res) {
+					closeMask();
+					parent.layer.msg("操作成功");
+					parent.loadData();
+				}, function(res) {
+					if(res.code == "0004") {
+						layer.msg("该物业公司已存在，请勿重复操作");
+					} else {
+						layer.msg("操作失败");
+					}
+				})
+			}
+		}
+	</script>
+
+</html>

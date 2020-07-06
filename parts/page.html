@@ -1,0 +1,11 @@
+<div class="page-inner-box v-page" v-cloak>
+	<div class="text-box">每页<span>{{pageSize}}</span>条，共<span>{{count}}</span>条</div>
+	<div class="text-box">共<span>{{totalPage}}</span>页</div>
+	<div class="opera-box">
+		<div onclick="beforePage();">上一页</div>
+		<ul class="page-list-box">
+			<li v-bind:class="t == pageNo?'selected':''" v-for="t in pageList" v-on:click="t?customPage(t):''">{{t?t:'···'}}</li>
+		</ul>
+		<div onclick="nextPage();">下一页</div>
+	</div>
+</div>

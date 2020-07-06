@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/jquery.table2excel.min.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="search-box">
+				<div class="search-row-box">
+					<div class="search-list">
+						<div class="search-name">缴费项目：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="feeName" placeholder="缴费项目" />
+						</div>
+					</div>
+					<div class="search-btn-box">
+						<div class="btn" onclick="search();">查询</div>
+						<div class="btn" onclick="reloadPage();">重置</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="exportFeeRecord();">导出</div>
+				</div>
+			</div>
+			<div class="kjy-data-box" v-if="isInit">
+				<div class="no-data-box" v-if="dataList.length == 0">
+					<div class="no-data-inner-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有线下缴费哦</div>
+					</div>
+				</div>
+				<div class="kjy-data-inner-box" v-else>
+					<div class="kjy-table">
+						<table id="feeRecord">
+							<thead>
+								<tr>
+									<th>序号</th>
+									<th>缴费项目</th>
+									<th>房屋地址</th>
+									<th>支付人姓名</th>
+									<th>支付人手机号</th>
+									<th>缴费金额（元）</th>
+									<th>操作员</th>
+									<th>备注</th>
+									<th>更新时间</th>
+									<th>创建时间</th>
+								</tr>
+							</thead>
+
+							<tbody id="tbody">
+								<tr v-for="(t,i) in dataList">
+									<td>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+									<td v-bind:title="t.feeName">{{t.feeName}}</td>
+									<td v-bind:title="t.payerAddress">{{t.payerAddress}}</td>
+									<td>{{t.payer}}</td>
+									<td>{{t.payerTelephone?t.payerTelephone:"无"}}</td>
+									<td>{{t.fee}}</td>
+									<td>{{t.operator}}</td>
+									<td>{{t.detail?t.detail:"无"}}</td>
+									<td>{{t.updateTime}}</td>
+									<td>{{t.createTime}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="page-box"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		loadVue(".v-dom", param);
+
+		//导出
+		function exportFeeRecord() {
+			var parentData = setData.parentData;
+			var communityName = parentData.name;
+			var dom = $("#feeRecord");
+			var fileName = communityName + "线下缴费记录.xls";
+			exportExcel(dom, "", fileName);
+		}
+
+		//加载数据
+		function loadData(cinfo) {
+			var parentData = setData.parentData;
+			var param = {
+				page: pageNo,
+				pageSize: "1000",
+				feeName: $("#feeName").val(),
+				communityId: parentData.id
+			};
+			request("POST", "property/feeRecord/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+					dataList[i].fee = parseFloat(dataList[i].fee).toFixed(2);
+				}
+				setData.dataList = dataList;
+				setData.allIsActive = false;
+				setData.isInit = true;
+				loadPage();
+			}, function(res) {
+				layer.msg("线下缴费加载失败");
+			})
+		}
+	</script>
+
+</html>

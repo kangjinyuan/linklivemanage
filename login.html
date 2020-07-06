@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="img/common/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="css/reset.css" />
+		<link rel="stylesheet" href="css/common.css?v=890428a1a1" />
+		<link rel="stylesheet" href="css/login.css?v=ed76bf418e" />
+		<script src="js/jquery-1.9.1.min.js"></script>
+		<script src="layui/layui.all.js"></script>
+		<script src="js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="js/common.js?v=ac90fbe080"></script>
+		<script src="js/login.js?v=a07ca55956"></script>
+	</head>
+
+	<body>
+		<div class="login-box">
+			<div class="login-inner-box position-center">
+				<div class="decorate-box"></div>
+				<div class="login-content-box">
+					<div class="login-content-inner-box position-transform-vertical">
+						<div class="title">邻客综合管理平台</div>
+						<div class="login-list-box">
+							<div class="login-list">
+								<div class="icon icon-account"></div>
+								<div class="login-input-box">
+									<input type="text" value="" name="" id="account" autocomplete="off" placeholder="请输入用户名" oninput="bindLoginBtn();" />
+								</div>
+							</div>
+							<div class="login-list">
+								<div class="icon icon-password"></div>
+								<div class="login-input-box">
+									<input type="password" value="" name="" id="password" autocomplete="off" placeholder="请输入登录密码" oninput="bindLoginBtn();" />
+								</div>
+							</div>
+							<div class="login-list">
+								<div class="icon icon-token"></div>
+								<div class="login-input-box login-input-token-box">
+									<input type="text" value="" name="" id="inputCode" placeholder="请输入验证码" oninput="bindLoginBtn();" />
+								</div>
+								<div class="login-input-token-text-box f_r" id="checkCode" onclick="createCode()"></div>
+							</div>
+						</div>
+						<div class="login-btn login-disabled-btn" id="login_btn">登录</div>
+					</div>
+				</div>
+			</div>
+			<div class="copy-right position-bottom">copyright &copy; 北京闪向科技有限公司</div>
+		</div>
+	</body>
+	<script>
+		createCode();
+	</script>
+
+</html>

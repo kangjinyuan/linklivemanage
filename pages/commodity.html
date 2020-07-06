@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="search-box">
+				<div class="search-row-box">
+					<div class="search-list">
+						<div class="search-name">商品名称：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="name" placeholder="商品名称" />
+						</div>
+					</div>
+					<div class="search-btn-box">
+						<div class="btn" onclick="search();">查询</div>
+						<div class="btn" onclick="reloadPage();">重置</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="commodity();">新建</div>
+					<div class="btn" onclick="del();">删除</div>
+				</div>
+			</div>
+			<div class="kjy-data-box" v-if="isInit">
+				<div class="no-data-box" v-if="dataList.length == 0">
+					<div class="no-data-inner-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有商品哦</div>
+					</div>
+				</div>
+				<div class="kjy-data-inner-box" v-else>
+					<div class="kjy-table">
+						<table>
+							<thead>
+								<tr>
+									<th class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',allIsActive?'icon-checked':'']" v-on:click="selectAllData()"></div>序号</th>
+									<th>商品名称</th>
+									<th>商品销量（份）</th>
+									<th>商品库存（份）</th>
+									<th>商品原价（元）</th>
+									<th>商品售价（元）</th>
+									<th>创建时间</th>
+									<th>操作</th>
+								</tr>
+							</thead>
+
+							<tbody id="tbody">
+								<tr v-for="(t,i) in dataList">
+									<td class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',t.isActive?'icon-checked':'']" v-on:click="selectOneData(t)"></div>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+									<td v-bind:title="t.name">{{t.name}}</td>
+									<td>{{t.salesVolume}}</td>
+									<td>{{t.totalStock}}</td>
+									<td>{{t.originPrice}}</td>
+									<td>{{t.finalPrice}}</td>
+									<td>{{t.createTime}}</td>
+									<td>
+										<ul class="opera-box">
+											<li v-on:click="commodity(t);">编辑</li>
+											<li v-on:click="attribute(t);">属性</li>
+										</ul>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="page-box"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		param.guarantee = [];
+		loadVue(".v-dom", param);
+
+		//同步属性
+		function syncGuarantee(obj, callback) {
+			var guarantee = resetGuarantee();
+			var objGuarantee = JSON.parse(obj.guarantee);
+			for(var i = 0; i < guarantee.length; i++) {
+				for(var j = 0; j < objGuarantee.length; j++) {
+					if(guarantee[i].id == objGuarantee[j].id && guarantee[i].isActive != objGuarantee[j].isActive) {
+						guarantee[i].isActive = objGuarantee[j].isActive;
+					}
+				}
+			}
+			var param = {
+				id: obj.id,
+				name: obj.name,
+				totalStock: obj.totalStock,
+				originPrice: obj.originPrice,
+				finalPrice: obj.finalPrice,
+				guarantee: JSON.stringify(guarantee),
+				agencyId: "1",
+				agencyName: "邻客社区直营店",
+			};
+			request("POST", "shop/commodity/saveOrUpdate.do", param, true, function(res) {
+				callback(guarantee);
+			}, function() {
+				layer.msg("保障同步失败");
+			})
+		}
+
+		function attribute(obj) {
+			openMask("pages/attribute", obj.name + "商品属性", ["100%", "100%"], function(layerDom, layerIframe) {
+				layerIframe.setData.parentData = obj;
+				layerIframe.uploadImageInit();
+				layerIframe.loadCombination();
+			})
+		}
+
+		//新建弹出
+		function commodity(obj) {
+			if(obj) {
+				syncGuarantee(obj, function(guarantee) {
+					showCommodity(obj, guarantee);
+				});
+			} else {
+				showCommodity(obj, resetGuarantee());
+			}
+		}
+
+		function showCommodity(obj, guarantee) {
+			if(obj) {
+				var title = "编辑商品";
+			} else {
+				var title = "新建商品";
+			}
+			openMask("parts/commodity", title, ["690px", "500px"], function(layerDom, layerIframe) {
+				layerIframe.uploadImageInit();
+				layerIframe.setData.guarantee = guarantee;
+				if(obj) {
+					layerIframe.setData.parentData = obj;
+					layerDom.find("#name").val(obj.name);
+					layerDom.find("#totalStock").val(obj.totalStock);
+					layerDom.find("#originPrice").val(obj.originPrice);
+					layerDom.find("#finalPrice").val(obj.finalPrice);
+					for(var i = 0; i < 5; i++) {
+						var image = obj["image" + i];
+						var detail = obj["detail" + i];
+						if(image) {
+							layerDom.find("#image" + i).parents(".btn-box").siblings().find("img").attr("src", image);
+						}
+						if(detail) {
+							layerDom.find("#detail" + i).parents(".btn-box").siblings().find("img").attr("src", detail);
+						}
+					}
+				}
+			})
+		}
+		
+		//重置保障数据
+		function resetGuarantee() {
+			var guarantee = setData.guarantee;
+			for(var i = 0; i < guarantee.length; i++) {
+				guarantee[i].isActive = true;
+			}
+			return guarantee;
+		}
+
+		//删除
+		function del() {
+			if(idList.length == 0) {
+				layer.msg("请选择商品");
+				return false;
+			}
+			openConfirm("确定删除所选商品吗？", function() {
+				var param = {
+					idList: idList
+				}
+				request("POST", "shop/commodity/delete.do", param, true, function(res) {
+					loadData();
+					layer.closeAll("dialog");
+				}, function(res) {
+					layer.msg("删除失败");
+				})
+			})
+		}
+
+		//加载数据
+		function loadData() {
+			var param = {
+				page: pageNo,
+				name: $("#name").val()
+			};
+			request("POST", "shop/commodity/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+					dataList[i].originPrice = parseFloat(dataList[i].originPrice).toFixed(2);
+					dataList[i].finalPrice = parseFloat(dataList[i].finalPrice).toFixed(2);
+					for(var j = 0; j < 5; j++) {
+						if(dataList[i]["image" + j]) {
+							dataList[i]["image" + j] = imageUrl + dataList[i]["image" + j];
+						}
+						if(dataList[i]["detail" + j]) {
+							dataList[i]["detail" + j] = imageUrl + dataList[i]["detail" + j];
+						}
+					}
+				}
+				setData.dataList = dataList;
+				setData.allIsActive = false;
+				setData.isInit = true;
+				loadPage();
+			}, function(res) {
+				layer.msg("商品加载失败");
+			})
+		}
+
+		function loadGuarantee() {
+			getJson("json/guarantee", function(res) {
+				setData.guarantee = res;
+			});
+		}
+
+		loadGuarantee();
+		loadData();
+	</script>
+
+</html>

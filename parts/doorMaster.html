@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="mask-box v-dom" v-cloak>
+			<div class="mask-inner-box">
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">设备名称：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="deviceName" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">序列号：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="deviceSn" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">密码：</span></div>
+					<div class="mask-list-value">
+						<input type="password" name="" id="password" value="" class="required regular-positive-int length-equals-6" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">设备类型：</span></div>
+					<div class="mask-list-value">
+						<select name="" id="type" class="required" onchange="selectType();">
+							<option value="">请选择</option>
+							<option value="2">社区</option>
+							<option value="3">单元</option>
+						</select>
+					</div>
+				</div>
+				<div class="mask-list" v-if="type">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">所属社区：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="communityName" value="" disabled="disabled" class="required" />
+						<input type="hidden" name="" id="communityId" value="" class="required" />
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn" onclick="selectCommunity();">选择</div>
+						</div>
+					</div>
+				</div>
+				<div class="mask-row-list" v-if="type == '3'">
+					<div class="mask-list" v-if="buildingList.length > 0">
+						<div class="mask-list-name"><span class="required-flag">*</span><span class="text">所属楼宇：</span></div>
+						<div class="mask-list-value">
+							<select name="" id="buildingId" class="required width-80" v-on:change="selectBuilding();">
+								<option value="">请选择</option>
+								<option v-bind:value="t.id" v-for="t in buildingList">{{t.code}}号楼</option>
+							</select>
+						</div>
+					</div>
+					<div class="mask-list c_b" v-if="buildingInfo">
+						<div class="mask-list-name"><span class="required-flag">*</span><span class="text">所属单元：</span></div>
+						<div class="mask-list-value">
+							<select name="" id="unit" class="required width-80">
+								<option value="">请选择</option>
+								<option v-bind:value="t" v-for="t in buildingInfo.units">{{t}}单元</option>
+							</select>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="save();">保存</div>
+					<div class="btn" onclick="closeMask();">返回</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		param.buildingList = [];
+		param.buildingInfo = "";
+		param.type = "";
+		loadVue(".v-dom", param);
+
+		function selectCommunity() {
+			parent.openMask("parts/selectCommunity", "选择社区", ["800px", "500px"], function(layerDom, layerIframe) {
+				var dataInfo = {
+					id: $("#communityId").val(),
+					name: $("#communityName").val()
+				}
+				layerIframe.dataInfo = dataInfo;
+				layerIframe.loadData();
+			});
+		}
+
+		function selectType() {
+			setData.type = $("#type").val();
+		}
+
+		function selectBuilding() {
+			var buildingList = setData.buildingList;
+			var id = $("#buildingId").val();
+			for(var i = 0; i < buildingList.length; i++) {
+				if(id == buildingList[i].id) {
+					setData.buildingInfo = buildingList[i];
+				}
+			}
+		}
+
+		//保存
+		function save() {
+			if(checkRegular()) {
+				var type = setData.type;
+				var param = {
+					deviceName: $("#deviceName").val(),
+					deviceSn: $("#deviceSn").val(),
+					pwd: $("#password").val(),
+					type: type,
+					communityId: $("#communityId").val(),
+					communityName: $("#communityName").val()
+				};
+				if(type == "3") {
+					param.buildingId = $("#buildingId").val();
+					param.unit = $("#unit").val();
+				}
+				request("POST", "facility/doorMaster/save.do", param, true, function(res) {
+					closeMask();
+					parent.layer.msg("操作成功");
+					parent.loadData();
+				}, function(res) {
+					if(res.code == "0004") {
+						layer.msg("该设备已存在，请勿重复操作");
+					} else {
+						layer.msg("操作失败");
+					}
+				})
+			}
+		}
+
+		function loadBuilding() {
+			var param = {
+				pageSize: "1000",
+				communityId: $("#communityId").val()
+			};
+			request("POST", "property/buildings/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				if(dataList.length == 0) {
+					layer.msg("该社区无楼宇，请先创建楼宇", {
+						time: 2000
+					}, function() {
+						closeMask();
+					})
+				} else {
+					setData.buildingList = dataList;
+					setData.buildingInfo = "";
+				}
+			}, function() {
+				layer.msg("楼宇加载失败");
+			})
+		}
+	</script>
+
+</html>

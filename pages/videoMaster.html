@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="KJYBOX VDOM" v-cloak>
+			<div class="kjy-title">视频设备管理</div>
+			<div class="search-box">
+				<div class="search-text">
+					<div class="search">
+						<div class="search-name">所属社区：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="communityName" placeholder="输入社区名称" />
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn icon icon-reload" onclick="reloadpage();">刷新</div>
+				<div class="btn icon icon-search" onclick="sreach();">查询</div>
+				<div class="btn icon icon-add" onclick="showVideoMaster(0, '', '新建视频设备');">新建视频设备</div>
+				<div class="btn icon icon-del" onclick="del();">删除</div>
+			</div>
+			<div class="kjy-table">
+				<table>
+					<thead>
+						<tr>
+							<th class="padding20">
+								<div v-bind:class="['no-check',allIsActive?'checked':'']" v-on:click="selectAllData()"></div>序号</th>
+							<th>设备名称</th>
+							<th>设备序列号</th>
+							<th>设备类型</th>
+							<th>设备归属地</th>
+							<th>设备状态</th>
+							<th>所属社区</th>
+							<th>创建时间</th>
+						</tr>
+					</thead>
+
+					<tbody id="tbody">
+						<tr v-for="(t,i) in dataList">
+							<td class="padding20">
+								<div v-bind:class="['no-check',t.isActive?'checked':'']" v-on:click="selectOneData(t)"></div>{{((currentPage-1)*pageSize)+(i+1)}}</td>
+							<td>{{t.deviceName}}</td>
+							<td>{{t.deviceSn}}</td>
+							<td>{{t.typetext}}</td>
+							<td v-if="t.type == 2">社区</td>
+							<td v-if="t.type == 3">{{t.buildingCode}}号楼{{t.unit}}单元</td>
+							<td>{{t.statustext}}</td>
+							<td>{{t.communityName}}</td>
+							<td>{{t.createTime}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="page-box"></div>
+		</div>
+	</body>
+	<script>
+		function showVideoMaster(flag, obj, title) {
+			openMask("", "../part/videoMaster", title, "390px", "500px", function(layerDom, layerIframe) {
+				judeEdit(flag, layerDom);
+			})
+		}
+
+		//删除数据
+		function del() {
+			delData("确定删除所选视频设备？", function(param) {
+				request('POST', '/facility/doorMaster/delete.do', param, true, function(res) {
+					loadData();
+					layer.closeAll('dialog');
+				}, function(res) {
+					layer.msg("删除失败，请检查网络或重试");
+				})
+			})
+		}
+
+		//		加载数据
+		function loadData() {
+			var param = {
+				page: page,
+				communityName: $("#communityName").val()
+			};
+			request('POST', '/facility/doorMaster/queryList.do', param, true, function(res) {
+				var dataList = res.data;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+					if(dataList[i].type == 2) {
+						dataList[i].typetext = "社区设备";
+					} else if(dataList[i].type == 3) {
+						dataList[i].typetext = "单元设备";
+					}
+					if(dataList[i].status == 0) {
+						dataList[i].statustext = "离线";
+					} else if(dataList[i].status == 1) {
+						dataList[i].statustext = "在线";
+					}
+				}
+				setData.dataList = dataList;
+				setData.allIsActive = false;
+				loadxq();
+			}, function() {
+				layer.msg("视频设备加载失败");
+			})
+		}
+
+		loadPage(0, function() {
+			loadData();
+		});
+	</script>
+
+</html>

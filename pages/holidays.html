@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="holidays();">新建</div>
+					<div class="btn" onclick="del();">删除</div>
+					<div class="btn" onclick="reloadPage();">重置</div>
+				</div>
+			</div>
+			<div class="kjy-data-box" v-if="isInit">
+				<div class="no-data-box" v-if="dataList.length == 0">
+					<div class="no-data-inner-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有节假日哦</div>
+					</div>
+				</div>
+				<div class="full-box" v-else>
+					<div class="kjy-table">
+						<table>
+							<thead>
+								<tr>
+									<th class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',allIsActive?'icon-checked':'']" v-on:click="selectAllData()"></div>序号</th>
+									<th>节假日</th>
+									<th>操作</th>
+								</tr>
+							</thead>
+
+							<tbody id="tbody">
+								<tr v-for="(t,i) in dataList">
+									<td class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',t.isActive?'icon-checked':'']" v-on:click="selectOneData(t)"></div>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+									<td>{{t.day | resetTime(3)}}</td>
+									<td>
+										<ul class="opera-box">
+											<li v-on:click="holidays(t);">编辑</li>
+										</ul>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="page-box"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		loadVue(".v-dom", param);
+
+		//新建或编辑
+		function holidays(obj) {
+			if(obj) {
+				var title = "编辑节假日";
+			} else {
+				var title = "新建节假日";
+			}
+			openMask("parts/holidays", title, ["346px", "376px"], function(layerDom, layerIframe) {
+				if(obj) {
+					layerIframe.setData.parentData = obj;
+					layerDom.find("#day").val(resetTime(obj.day, 3));
+				}
+			})
+		}
+
+		//删除
+		function del() {
+			if(idList.length == 0) {
+				layer.msg("请选择节假日");
+				return false;
+			}
+			openConfirm("确定删除所选节假日吗？", function() {
+				var param = {
+					idList: idList
+				}
+				request("POST", "property/holidays/delete.do", param, true, function(res) {
+					loadData();
+					layer.closeAll("dialog");
+				}, function(res) {
+					layer.msg("删除失败");
+				});
+			});
+		}
+
+		//加载数据
+		function loadData() {
+			var param = {
+				page: pageNo
+			};
+			request("POST", "property/holidays/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+				}
+				setData.dataList = dataList;
+				setData.allIsActive = false;
+				setData.isInit = true;
+				loadPage();
+			}, function(res) {
+				layer.msg("节假日加载失败");
+			})
+		}
+
+		loadData();
+	</script>
+
+</html>

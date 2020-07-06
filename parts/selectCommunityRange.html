@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/common/logo.png" type="image/x-icon">
+		<link rel="stylesheet" href="../css/reset.css">
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1">
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+		<script src="../js/selectData.js?v=28e89f7647"></script>
+	</head>
+
+	<body>
+		<div class="mask-box v-dom" v-cloak>
+			<div class="mask-inner-box">
+				<div class="kjy-box kjy-flex-box">
+					<div class="search-box">
+						<div class="search-row-box">
+							<div class="search-list">
+								<div class="search-name">社区名称：</div>
+								<div class="search-value">
+									<input type="text" name="" value="" id="name" placeholder="社区名称">
+								</div>
+							</div>
+							<div class="search-btn-box">
+								<div class="btn" onclick="search();">查询</div>
+							</div>
+						</div>
+					</div>
+					<div class="kjy-data-box" v-if="isInit">
+						<div class="no-data-box" v-if="dataList.length == 0">
+							<div class="no-data-inner-box">
+								<div class="icon icon-no-data"></div>
+								<div class="no-data-text">暂时没有社区哦</div>
+							</div>
+						</div>
+						<div class="kjy-data-inner-box" v-else>
+							<div class="kjy-table">
+								<table>
+									<thead>
+										<tr v-on:click="selectAllData()">
+											<th class="padding-left-56">
+												<div v-bind:class="['icon','icon-check-box','position-left',allIsActive?'icon-checked':'']"></div>序号</th>
+											<th>社区名称</th>
+											<th>创建时间</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr v-for="(t,i) in dataList" v-on:click="selectData(t)">
+											<td class="padding-left-56">
+												<div v-bind:class="['icon','icon-check-box','position-left',t.isActive?'icon-checked':'']"></div>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+											<td>{{t.name}}</td>
+											<td>{{t.createTime}}</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="page-box"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="save();">保存</div>
+					<div class="btn" onclick="closeMask();">返回</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		loadVue(".v-dom", param);
+
+		//保存
+		function save() {
+			var communityIdList = [];
+			if(selectDataList.length == 0) {
+				layer.msg("请选择社区");
+				return false;
+			}
+			for(var i = 0; i < selectDataList.length; i++) {
+				communityIdList.push(selectDataList[i].id);
+			}
+			parent.getMaskData(function(layerDom, layerIframe) {
+				layerIframe.setData.communityIdList = communityIdList;
+				layerIframe.loadCommunity();
+				closeMask();
+			});
+		}
+
+		//加载数据
+		function loadData() {
+			var param = {
+				page: pageNo,
+				name: $("#name").val()
+			};
+			request("POST", "property/community/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				resetData(dataList);
+				setData.isInit = true;
+				setData.dataList = dataList;
+				loadPage();
+			}, function() {
+				layer.msg("社区加载失败");
+			})
+		}
+
+		//加载选中数据
+		function loadSelectDataList() {
+			var contentList = setData.contentList;
+			for(var i = 0; i < contentList.length; i++) {
+				selectDataList.push(contentList[i]);
+			}
+			loadData();
+		}
+	</script>
+
+</html>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/jquery.table2excel.min.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="search-box">
+				<div class="search-row-box">
+					<div class="search-list">
+						<div class="search-name">账单号：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="billNo" placeholder="账单号" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">缴费项目：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="feeName" placeholder="缴费项目" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">流水号：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="transactionId" placeholder="流水号" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">业主姓名：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="proprietor" placeholder="业主姓名" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">对账状态：</div>
+						<div class="search-value">
+							<select name="" id="checkState" v-on:change="search()">
+								<option value="">全部</option>
+								<option value="1">正常</option>
+								<option value="0">异常</option>
+							</select>
+						</div>
+					</div>
+					<div class="search-btn-box">
+						<div class="btn" onclick="search();">查询</div>
+						<div class="btn" onclick="reloadPage();">重置</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="exportCheckBillCollection();">导出</div>
+				</div>
+			</div>
+			<div class="kjy-data-box" v-if="isInit">
+				<div class="no-data-box" v-if="dataList.length == 0">
+					<div class="no-data-inner-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有对账记录哦</div>
+					</div>
+				</div>
+				<div class="kjy-data-inner-box" v-else>
+					<div class="kjy-table">
+						<table id="checkBillCollectionExcel">
+							<thead>
+								<tr>
+									<th>序号</th>
+									<th>业主姓名</th>
+									<th>账单号</th>
+									<th>缴费项目</th>
+									<th>实际缴费（元）</th>
+									<th>流水号</th>
+									<th>交易时间</th>
+									<th>对账状态</th>
+									<th>备注</th>
+									<th>创建时间</th>
+								</tr>
+							</thead>
+
+							<tbody id="tbody">
+								<tr v-for="(t,i) in dataList">
+									<td>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+									<td>{{t.proprietor}}</td>
+									<td v-bind:title="t.billNo">{{t.billNo}}</td>
+									<td>{{t.feeName}}</td>
+									<td>{{t.totalFee}}</td>
+									<td v-bind:title="t.transactionId">{{t.transactionId}}</td>
+									<td>{{t.transactionTime}}</td>
+									<td>{{t.checkStateText}}</td>
+									<td v-bind:title="t.remarkText">{{t.remarkText}}</td>
+									<td>{{t.createTime}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="page-box"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		loadVue(".v-dom", param);
+
+		function exportCheckBill() {
+			var dom = $("#checkBillCollectionExcel");
+			var fileName = "邻客对账记录.xls";
+			exportExcel(dom, "", fileName);
+		}
+
+		function loadData() {
+			var param = {
+				page: pageNo,
+				pageSize: "1000",
+				billNo: $("#billNo").val(),
+				feeName: $("#feeName").val(),
+				transactionId: $("#transactionId").val(),
+				proprietor: $("#proprietor").val(),
+				checkState: $("#checkState").val()
+			}
+			request("POST", "property/checkBill/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].totalFee = parseFloat(dataList[i].totalFee).toFixed(2);
+					if(dataList[i].checkState == "0") {
+						dataList[i].checkStateText = "异常";
+					} else {
+						dataList[i].checkStateText = "正常";
+					}
+					if(dataList[i].remark == "MATCH") {
+						dataList[i].remarkText = "正常";
+					} else {
+						dataList[i].remarkText = dataList[i].remark;
+					}
+				}
+				setData.dataList = dataList;
+				setData.isInit = true;
+				loadPage();
+			}, function(res) {
+				layer.msg("对账记录加载失败");
+			})
+		}
+
+		loadData();
+	</script>
+
+</html>

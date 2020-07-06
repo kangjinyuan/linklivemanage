@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/common/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="del();">删除</div>
+					<div class="btn" onclick="reloadPage();">重置</div>
+				</div>
+			</div>
+			<div class="kjy-data-box" v-if="isInit">
+				<div class="no-data-box" v-if="dataList.length == 0">
+					<div class="no-data-inner-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有帖子记录哦</div>
+					</div>
+				</div>
+				<div class="kjy-data-inner-box" v-else>
+					<div class="kjy-table">
+						<table>
+							<thead>
+								<tr>
+									<th class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',allIsActive?'icon-checked':'']" v-on:click="selectAllData()"></div>序号</th>
+									<th>昵称</th>
+									<th>内容</th>
+									<th>点赞量</th>
+									<th>评论量</th>
+									<th>创建时间</th>
+									<th>操作</th>
+								</tr>
+							</thead>
+
+							<tbody>
+								<tr v-for="(t,i) in dataList">
+									<td class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',t.isActive?'icon-checked':'']" v-on:click="selectOneData(t)"></div>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+									<td>{{t.accountName}}</td>
+									<td v-bind:title="t.content?t.content:'无'">{{t.content?t.content:"无"}}</td>
+									<td>{{t.likes}}</td>
+									<td>{{t.commentNum}}</td>
+									<td>{{t.createTime}}</td>
+									<td>
+										<ul class="opera-box">
+											<li v-on:click="moment(t);">详情</li>
+											<li v-on:click="momentComment(t);">评论</li>
+										</ul>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="page-box"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		loadVue(".v-dom", param);
+
+		//删除
+		function del() {
+			if(idList.length == 0) {
+				layer.msg("请选择帖子");
+				return false;
+			}
+			openConfirm("确定删除所选帖子吗？", function() {
+				var param = {
+					idList: idList
+				}
+				request("POST", "shop/moment/delete.do", param, true, function(res) {
+					loadData();
+					layer.closeAll('dialog');
+				}, function(res) {
+					layer.msg("删除失败");
+				});
+			})
+		}
+
+		//详情
+		function moment(obj) {
+			openMask("parts/moment", obj.accountName, ["504px", "500px"], function(layerDom, layerIframe) {
+				layerIframe.setData.parentData = obj;
+			});
+		}
+
+		//评论
+		function momentComment(obj) {
+			openMask("pages/momentComment", "评论", ["100%", "100%"], function(layerDom, layerIframe) {
+				layerIframe.setData.parentData = obj;
+				layerIframe.loadData(obj);
+			})
+		}
+
+		//加载数据
+		function loadData() {
+			var param = {
+				page: pageNo
+			};
+			request("POST", "shop/moment/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+					var imageList = dataList[i].imageList;
+					for(var j = 0; j < imageList.length; j++) {
+						imageList[j] = imageUrl + imageList[j];
+					}
+				}
+				setData.dataList = dataList;
+				setData.allIsActive = false;
+				setData.isInit = true;
+				loadPage();
+			}, function(res) {
+				layer.msg("帖子加载失败");
+			})
+		}
+
+		loadData();
+	</script>
+
+</html>

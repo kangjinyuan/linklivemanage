@@ -1,0 +1,167 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="search-box">
+				<div class="search-row-box">
+					<div class="search-list">
+						<div class="search-name">订单号：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="id" placeholder="订单号" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">商品名称：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="commodityName" placeholder="商品名称" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">手机号：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="telePhone" placeholder="手机号" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">订单状态：</div>
+						<div class="search-value">
+							<select name="" id="state" v-on:change="search();">
+								<option value="">==请选择订单状态==</option>
+								<option value="0">待付款</option>
+								<option value="1">待发货</option>
+								<option value="2">待收货</option>
+								<option value="3">待评价</option>
+								<option value="4">已评价</option>
+								<option value="5">已取消</option>
+								<option value="6">已关闭</option>
+							</select>
+						</div>
+					</div>
+					<div class="search-btn-box">
+						<div class="btn" onclick="search();">查询</div>
+						<div class="btn" onclick="reloadPage();">重置</div>
+					</div>
+				</div>
+			</div>
+			<div class="kjy-data-box" v-if="isInit">
+				<div class="no-data-box" v-if="dataList.length == 0">
+					<div class="no-data-inner-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有团购订单哦</div>
+					</div>
+				</div>
+				<div class="kjy-data-inner-box" v-else>
+					<div class="kjy-table">
+						<table>
+							<thead>
+								<tr>
+									<th>序号</th>
+									<th>订单号</th>
+									<th>用户</th>
+									<th>商品详情</th>
+									<th>订单金额（元）</th>
+									<th>支付金额（元）</th>
+									<th>订单状态</th>
+									<th>更新时间</th>
+									<th>创建时间</th>
+								</tr>
+							</thead>
+
+							<tbody id="tbody">
+								<tr v-for="(t,i) in dataList">
+									<td>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+									<td>{{t.id}}</td>
+									<td>
+										<div>
+											<p>姓名：{{t.name}}</p>
+											<p>手机号：{{t.telephone}}</p>
+											<p v-bind:title="t.address">收货地址：{{t.address}}</p>
+										</div>
+									</td>
+									<td>
+										<div v-for="t in t.orderItemList">
+											<p v-bind:title="t.commodityName">商品名称：{{t.commodityName}}</p>
+											<p v-bind:title="t.combination">商品属性：{{t.combination}}</p>
+											<p>购买数量：{{t.quantity}}</p>
+											<p>商品价格：{{t.price}}</p>
+										</div>
+									</td>
+									<td>{{t.totalFee}}</td>
+									<td>{{t.payFee}}</td>
+									<td>{{t.stateText}}</td>
+									<td>{{t.updateTime}}</td>
+									<td>{{t.createTime}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="page-box"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		loadVue(".v-dom", param);
+
+		//加载数据
+		function loadData() {
+			var param = {
+				page: pageNo,
+				id: $("#id").val(),
+				state: $("#state").val(),
+				commodityName: $("#commodityName").val(),
+				telephone: $("#telePhone").val()
+			};
+			request("POST", "shop/order/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+					if(dataList[i].state == "0") {
+						dataList[i].stateText = "待付款";
+					} else if(dataList[i].state == "1") {
+						dataList[i].stateText = "待发货";
+					} else if(dataList[i].state == "2") {
+						dataList[i].stateText = "待收货";
+					} else if(dataList[i].state == "3") {
+						dataList[i].stateText = "待评价";
+					} else if(dataList[i].state == "4") {
+						dataList[i].stateText = "已评价";
+					} else if(dataList[i].state == "5") {
+						dataList[i].stateText = "已取消";
+					} else if(dataList[i].state == "6") {
+						dataList[i].stateText = "已关闭";
+					}
+				}
+				setData.dataList = dataList;
+				setData.allIsActive = false;
+				setData.isInit = true;
+				loadPage();
+			}, function(res) {
+				layer.msg("团购订单加载失败");
+			})
+		}
+
+		loadData();
+	</script>
+
+</html>

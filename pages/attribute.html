@@ -1,0 +1,398 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src='../js/qiniu/qiniu.min.js'></script>
+		<script src='../js/qiniu/plupload.full.min.js'></script>
+		<script src="../js/upload.js?v=720a47cae8"></script>
+		<script src="../js/imageLoadInit.js"></script>
+		<script src="../js/imageLoad.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="opera-list-box">
+				<div class="opera-list opera-left-box">
+					<div class="opera-list-inner-box">
+						<div class="search-box">
+							<div class="search-row-box">
+								<div class="search-value full-width-box">
+									<input type="text" name="" value="" id="attributeCategory" maxlength="10" placeholder="属性类别" class="full-width">
+									<div class="icon icon-select-add position-right" v-on:click="saveAttribute();"></div>
+								</div>
+							</div>
+						</div>
+						<div class="no-data-box" v-if="attributeList.length == 0">
+							<div class="no-data-inner-box">
+								<div class="icon icon-no-data"></div>
+								<div class="no-data-text">暂时没有属性哦</div>
+							</div>
+						</div>
+						<div class="fold-box" v-else>
+							<div class="fold-list-box" v-for="t in attributeList">
+								<div class="search-box">
+									<div class="search-row-box">
+										<div class="search-value full-width-box">
+											<input type="text" name="" value="" v-bind:id="'attribute'+t.id" maxlength="10" placeholder="属性名称" class="full-width">
+											<div class="icon icon-select-add position-right" v-on:click="saveAttribute(t);"></div>
+										</div>
+									</div>
+								</div>
+								<div class="fold-title-box">
+									<div class="fold-title-text">{{t.name}}</div>
+									<div class="icon icon-select-close position-right" v-on:click="delAttributeCategroy(t);"></div>
+								</div>
+								<div class="fold-content-box">
+									<div class="fold-content-inner-box">
+										<ul>
+											<li v-for="attribute in t.attributes">
+												<div class="fold-content-text">{{attribute}}</div>
+												<div class="icon icon-select-close position-right" v-on:click="delAttribute(t,attribute);"></div>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="opera-list opera-right-box">
+					<div class="opera-list-inner-box">
+						<div class="kjy-data-box">
+							<div class="no-data-box" v-if="combinationList.length == 0">
+								<div class="no-data-inner-box">
+									<div class="icon icon-no-data"></div>
+									<div class="no-data-text">暂时没有单品哦</div>
+								</div>
+							</div>
+							<div class="kjy-data-inner-box" v-else>
+								<div class="kjy-table">
+									<table>
+										<thead>
+											<tr>
+												<th>序号</th>
+												<th>组合</th>
+												<th>库存（份）</th>
+												<th>价格（元）</th>
+												<th>封面</th>
+												<th>操作</th>
+											</tr>
+										</thead>
+
+										<tbody>
+											<tr v-for="(t,i) in combinationList">
+												<td>{{i+1}}</td>
+												<td>{{t.combination}}</td>
+												<td>
+													<input type="text" name="" v-bind:value="t.stock" class="stock width-80" placeholder="填写数字" disabled="disabled" />
+												</td>
+												<td>
+													<input type="text" name="" v-bind:value="t.price" class="price width-80" placeholder="填写数字" disabled="disabled" />
+												</td>
+												<td>
+													<div class="img-box">
+														<img data-width="1" data-height="1" v-bind:src="t.image" onerror="this.src='../img/common/no-img.png'" />
+													</div>
+													<div class="btn-box" v-if="t.saveFlag">
+														<div class="btn-inner-box">
+															<div class="btn upload-img" v-bind:id="'image'+i">上传</div>
+														</div>
+													</div>
+												</td>
+												<td>
+													<ul class="opera-box">
+														<li v-on:click="saveSku($event,t);" v-if="t.id || t.saveFlag">{{t.saveFlag?"保存":"编辑"}}</li>
+														<li v-on:click="delSku(t);" v-if="t.id">下架</li>
+														<li v-on:click="saveSku($event,t);" v-else>上架</li>
+													</ul>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		param.attributeList = [];
+		param.combinationList = [];
+		loadVue(".v-dom", param);
+
+		function saveAttribute(obj) {
+			var parentData = setData.parentData;
+			var param = {
+				commodityId: parentData.id
+			}
+			if(obj) {
+				var id = obj.id;
+				var name = $("#attribute" + id).val();
+				if(!name) {
+					layer.msg("属性名称为必填项，请核对");
+					return false;
+				}
+				var attributes = getAttributes(id);
+				attributes.push(name);
+				param.id = id;
+				param.name = name;
+				param.attributes = attributes;
+			} else {
+				var name = $("#attributeCategory").val();
+				if(!name) {
+					layer.msg("属性类别为必填项，请核对");
+					return false;
+				}
+				param.name = name;
+				param.attributes = [];
+			}
+			request("POST", "shop/commodity/attribute/saveOrUpdate.do", param, true, function(res) {
+				delAllSku();
+				layer.msg("添加成功");
+			}, function(res) {
+				layer.msg("添加失败");
+			});
+		}
+
+		function getAttributes(id) {
+			var attributeList = setData.attributeList;
+			for(var i = 0; i < attributeList.length; i++) {
+				if(id == attributeList[i].id) {
+					var attributes = attributeList[i].attributes;
+				}
+			}
+			return attributes;
+		}
+
+		function delAttribute(obj, attribute) {
+			var parentData = setData.parentData;
+			var id = obj.id;
+			var attributeList = setData.attributeList;
+			openConfirm("确定删除该属性名称吗？", function() {
+				var attributes = getAttributes(id);
+				attributes.splice($.inArray(attribute, attributes), 1);
+				var param = {
+					id: id,
+					name: obj.name,
+					attributes: attributes,
+					commodityId: parentData.id
+				}
+				request("POST", "shop/commodity/attribute/saveOrUpdate.do", param, true, function(res) {
+					delAllSku();
+					layer.msg("删除成功");
+				}, function(res) {
+					layer.msg("删除失败");
+				});
+			});
+		}
+
+		function delAttributeCategroy(obj) {
+			var parentData = setData.parentData;
+			openConfirm("确定删除该属性类别吗？", function() {
+				var param = {
+					idList: [obj.id],
+					commodityId: parentData.id
+				}
+				request("POST", "shop/commodity/attribute/delete.do", param, true, function(res) {
+					delAllSku();
+					layer.msg("删除成功");
+				}, function(res) {
+					layer.msg("删除失败");
+				});
+			})
+		}
+
+		function saveSku(event, obj) {
+			var ev = event.currentTarget;
+			var parentData = setData.parentData;
+			var combinationList = setData.combinationList;
+			var dom = $(ev).parents("tr");
+			var inputs = dom.find("input");
+			if(obj.saveFlag) {
+				var stock = dom.find(".stock").val();
+				var price = dom.find(".price").val();
+				resetImage();
+				var image = dom.find("img").attr("src").replace(imageUrl, "");
+				if(stock) {
+					if(!regular_positive_int.test(stock)) {
+						layer.msg("单品库存: 请输入正整数");
+						return false;
+					}
+				} else {
+					layer.msg("单品库存: 为必填项 请核对");
+					return false;
+				}
+				if(price) {
+					if(!regular_positive_number.test(price)) {
+						layer.msg("单品价格: 请输入正数");
+						return false;
+					}
+				} else {
+					layer.msg("单品价格 为必填项 请核对");
+					return false;
+				}
+				if(!image) {
+					layer.msg("单品封面 为必填项 请核对");
+					return false;
+				}
+				var param = {
+					id: obj.id,
+					commodityId: parentData.id,
+					code: obj.code,
+					combination: obj.combination,
+					stock: stock,
+					price: price,
+					image: image
+				}
+				request("POST", "shop/commodity/sku/saveOrUpdate.do", param, true, function(res) {
+					obj.saveFlag = false;
+					inputs.attr("disabled", "disabled");
+					loadCombination();
+					layer.msg("操作成功");
+				}, function(res) {
+					layer.msg("操作失败");
+				})
+			} else {
+				for(var i = 0; i < combinationList.length; i++) {
+					if(combinationList[i].saveFlag) {
+						layer.msg("您有正在操作的单品，请先保存");
+						return false;
+					}
+				}
+
+				obj.saveFlag = true;
+				inputs.removeAttr("disabled");
+				uploadImageInit();
+			}
+		}
+
+		//批量删除单品
+		function delAllSku() {
+			var parentData = setData.parentData;
+			var combinationList = setData.combinationList;
+			var idList = [];
+			for(var i = 0; i < combinationList.length; i++) {
+				var id = combinationList[i].id;
+				if(id) {
+					idList.push(id);
+				}
+			}
+			if(idList.length == 0) {
+				loadCombination();
+			} else {
+				var param = {
+					idList: idList,
+					commodityId: parentData.id
+				}
+				request("POST", "shop/commodity/sku/delete.do", param, true, function(res) {
+					loadCombination();
+				}, function(res) {
+					layer.msg("删除单品失败");
+				});
+			}
+		}
+
+		//删除单品数据
+		function delSku(obj) {
+			var parentData = setData.parentData;
+			openConfirm("确定下架该单品？", function() {
+				var param = {
+					idList: [obj.id],
+					commodityId: parentData.id
+				}
+				request("POST", "shop/commodity/sku/delete.do", param, true, function(res) {
+					loadCombination();
+					layer.closeAll('dialog');
+				}, function(res) {
+					layer.msg("下架失败");
+				});
+			});
+		}
+
+		function loadCombination() {
+			var parentData = setData.parentData;
+			var param = {
+				commodityId: parentData.id
+			}
+			request("POST", "shop/commodity/sku/combination.do", param, true, function(res) {
+				var combinationList = res.data;
+				for(var i = 0; i < combinationList.length; i++) {
+					var combination = combinationList[i].combination.split("[")[1].split("]")[0].split(",");
+					combinationList[i].combination = "";
+					for(var j = 0; j < combination.length; j++) {
+						combinationList[i].combination += combination[j];
+					}
+					var code = combinationList[i].code.split("[")[1].split("]")[0].split(",");
+					combinationList[i].code = "";
+					for(var j = 0; j < code.length; j++) {
+						combinationList[i].code += code[j];
+					}
+					combinationList[i].saveFlag = false;
+					combinationList[i].stock = 0;
+					var price = parseFloat(0).toFixed(2);
+					combinationList[i].price = price;
+					combinationList[i].image = "";
+				}
+				loadSku(combinationList);
+				loadAttribute();
+			}, function(res) {
+				layer.msg("属性组合加载失败");
+			})
+		}
+
+		function loadSku(combinationList) {
+			var parentData = setData.parentData;
+			var param = {
+				commodityId: parentData.id,
+				pageSize: "1000"
+			}
+			request("POST", "shop/commodity/sku/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				for(var i = 0; i < dataList.length; i++) {
+					for(var j = 0; j < combinationList.length; j++) {
+						if(combinationList[j].code == dataList[i].code) {
+							combinationList[j].id = dataList[i].id;
+							combinationList[j].stock = dataList[i].stock;
+							combinationList[j].price = parseFloat(dataList[i].price).toFixed(2);
+							combinationList[j].image = imageUrl + dataList[i].image;
+						}
+					}
+				}
+				setData.combinationList = combinationList;
+			}, function(res) {
+				layer.msg("单品加载失败");
+			})
+		}
+
+		function loadAttribute() {
+			var parentData = setData.parentData;
+			var param = {
+				commodityId: parentData.id
+			}
+			request("POST", 'shop/commodity/attribute/v2/queryList.do', param, true, function(res) {
+				setData.attributeList = res.data.dataList;
+			}, function(res) {
+				layer.msg("属性加载失败");
+			})
+		}
+	</script>
+
+</html>

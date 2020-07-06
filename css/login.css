@@ -1,0 +1,19 @@
+.login-box{width: 100%;height: 100%;min-width: 1200px;min-height: 550px;overflow:hidden;background: url(http://img.guostory.com/login-bg.png) center center no-repeat;background-size: auto 100%;position: absolute;top: 0;left: 0;}
+.login-inner-box{width: 704px;height: 342px;padding:62px 56px 56px 40px;border-radius: 30px;background-color:#fff;}
+.decorate-box,.login-content-box{height: 100%;}
+.decorate-box{width: 376px;float: left;background: url(../img/login/login-illustration.png) no-repeat;background-size: 100% 100%;}
+.login-content-box{width: 280px;float: right;position: relative;}
+.login-content-inner-box{width: 100%;}
+.title{width: 100%;height: 64px;font: bold 24px "微软雅黑";color: #333;text-align: center;}
+.login-list-box{width: 100%;overflow: hidden;}
+.login-list{width: auto;height: 22px;margin-bottom: 30px;padding: 0px 0px 20px 50px;border-bottom: 2px solid #eee;position: relative;}
+.login-list:last-child{margin-bottom: 0px;}
+.login-input-box{width: 100%;height: 100%;}
+.login-input-box input{width: 100%;height: 100%;background-color:#fff;border: none;outline: none;font: 12px "微软雅黑";color: #333;}
+.login-input-token-box{width: 142px;float: left;}
+.login-input-token-text-box{cursor: pointer;width: 68px;height: 30px;float: right;border-radius:6px;background-color:#399bf5;font: 12px/30px "微软雅黑";color: #fff;text-align: center;letter-spacing: 2px;}
+.login-btn{cursor: pointer;width: 220px;height: 44px;margin: 40px auto 0px;border-radius:22px;font:12px/44px "微软雅黑";text-align:center;}
+.login-disabled-btn{color:#999;background-color:#ebebeb;}
+.login-abled-btn{color:#fff;background-color: #399bf5;box-shadow: 0px 3px 8px 0px rgba(13, 134, 247, 0.5);-webkit-box-shadow: 0px 3px 8px 0px rgba(13, 134, 247, 0.5);-moz-box-shadow: 0px 3px 8px 0px rgba(13, 134, 247, 0.5);-ms-box-shadow: 0px 3px 8px 0px rgba(13, 134, 247, 0.5);-o-box-shadow: 0px 3px 8px 0px rgba(13, 134, 247, 0.5);}
+.icon{width: 22px;height: 22px;position: absolute;top: 0;left: 8px;background-size: auto 100%;} 
+.copy-right{color: #fff;bottom: 20px;}

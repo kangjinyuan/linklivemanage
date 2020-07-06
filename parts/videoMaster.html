@@ -1,0 +1,180 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="main-mask main-mask-bottom">
+			<div class="con">
+				<div class="mask-list">
+					<div class="mask-list-name"><span>*</span><span class="text">设备名称</span>：</div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="deviceName" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span>*</span><span class="text">设备编号</span>：</div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="deviceSn" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span>*</span><span class="text">设备密码</span>：</div>
+					<div class="mask-list-value">
+						<input type="password" name="" id="pwd" value="" class="required num pwd6" />
+						<div class="mask-list-prompt">密码为6位数字</div>
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span>*</span><span class="text">所属社区</span>：</div>
+					<div class="mask-list-value masklist200">
+						<input type="text" name="" id="communityName" value="" disabled="disabled" class="required" />
+						<input type="hidden" name="" id="communityId" value="" class="required" />
+					</div>
+					<div class="btn icon icon-select" onclick="selectxq('communityName','communityId')">选择社区</div>
+				</div>
+				<div class="mask-list hide-box" id="typebox">
+					<div class="mask-list-name"><span>*</span><span class="text">设备类型</span>：</div>
+					<div class="mask-list-value">
+						<select name="" id="type" class="required" onchange="selecttype(this)">
+							<option value="">==请选择设备类型==</option>
+							<option value="2">社区设备</option>
+							<option value="3">单元设备</option>
+						</select>
+					</div>
+				</div>
+				<div class="mask-list hide-box" id="buildingbox">
+					<div class="mask-listname"><span>*</span><span class="text">所属楼宇</span>：</div>
+					<div class="mask-list-value">
+						<select name="" id="buildingId" onchange="selectly(this)">
+							<option value="">==请选择所属楼宇==</option>
+						</select>
+					</div>
+				</div>
+				<div class="mask-list hide-box" id="unitbox">
+					<div class="mask-list-name"><span>*</span><span class="text">所属单元</span>：</div>
+					<div class="mask-list-value">
+						<select name="" id="unit">
+							<option value="">==请选择所属单元==</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="mask-btn-box">
+				<div class="btn-box">
+					<div class="btn icon icon-save" onclick="edit();" id="creatsave">确定</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		var lylist = [];
+
+		function selectxq(sname, sid) {
+			openMask('', "selectCommunity", "选择社区", "98%", "98%", function(layerDom, layerIframe) {
+				layerIframe[0].contentWindow.loadData(sname, sid);
+			})
+		}
+
+		function selecttype(t) {
+			if($(t).val() == 3) {
+				loadly($("#communityId").val());
+			} else if($(t).val() == 2) {
+				$("#buildingbox").hide();
+				$("#unitbox").hide();
+				$("#buildingId").removeClass("required");
+				$("#unit").removeClass("required");
+			}
+		}
+
+		function selectly(t) {
+			$("#unit").empty();
+			$("#unit").append("<option value=''>==请选择所属单元==</option>");
+			if($(t).val() == "") {
+				$("#unitbox").hide();
+			} else {
+				for(var i = 0; i < lylist.length; i++) {
+					if($("#buildingId").val() == lylist[i].id) {
+						$("#unitbox").show();
+						for(var j = 0; j < lylist[i].units; j++) {
+							$("#unit").append("<option value='" + (j + 1) + "'>" + (j + 1) + "单元</option>");
+						}
+					}
+				}
+			}
+		}
+
+		//编辑
+		function edit() {
+			var checkI = checkInput();
+			if(checkI == true) {
+				var param = {
+					id: $(".main-mask").attr("data-id"),
+					deviceName: $("#deviceName").val(),
+					deviceSn: $("#deviceSn").val(),
+					pwd: $("#pwd").val(),
+					communityId: $("#communityId").val(),
+					communityName: $("#communityName").val(),
+					type: $("#type").val(),
+					buildingId: $("#buildingId").val(),
+					unit: $("#unit").val()
+				};
+				request('POST', '/facility/doorMaster/saveOrUpdate.do', param, true, function(res) {
+					parent.layer.close(index);
+					parent.layer.msg("操作成功");
+				}, function(res) {
+					if(res.code == "0004") {
+						layer.msg("该设备已存在，请勿重复操作");
+					} else {
+						layer.msg('操作失败，请检查网络或重试');
+					}
+				})
+			}
+		}
+
+		function loadly(communityId) {
+			$("#buildingId").empty();
+			$("#buildingId").append("<option value=''>==请选择所属楼宇==</option>")
+			var param = {
+				pageSize: "1000",
+				communityId: communityId
+			};
+			request('POST', '/buildings/queryList.do', param, true, function(res) {
+				lylist = res.data;
+				if(lylist.length == 0) {
+					layer.msg("此社区无楼宇，请先创建楼宇", {
+						time: 2000
+					}, function() {
+						parent.layer.close(index);
+					})
+				} else {
+					$("#buildingbox").show();
+					$("#buildingId").addClass("required");
+					$("#unit").addClass("required");
+					for(var i = 0; i < lylist.length; i++) {
+						$("#buildingId").append("<option value='" + lylist[i].id + "'>" + lylist[i].code + "号楼</option>")
+					}
+				}
+			}, function() {
+				layer.msg("楼宇加载失败");
+			})
+		}
+	</script>
+
+</html>

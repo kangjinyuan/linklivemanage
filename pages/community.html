@@ -1,0 +1,254 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/area.js"></script>
+		<script src="../js/jquery.qrcode.js"></script>
+		<script src="../js/utf.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="search-box">
+				<div class="search-row-box">
+					<div class="search-list">
+						<div class="search-name">社区名称：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="name" placeholder="社区名称" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">详细地址：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="address" placeholder="详细地址" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">所属物业：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="pmcName" placeholder="所属物业" />
+						</div>
+					</div>
+					<div class="search-btn-box">
+						<div class="btn" onclick="search();">查询</div>
+						<div class="btn" onclick="reloadPage();">重置</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="community();" v-if="pmcList.length > 0">新建</div>
+					<div class="btn" onclick="del();">删除</div>
+				</div>
+			</div>
+			<div class="kjy-data-box" v-if="isInit">
+				<div class="no-data-box" v-if="dataList.length == 0">
+					<div class="no-data-inner-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有社区哦</div>
+					</div>
+				</div>
+				<div class="kjy-data-inner-box" v-else>
+					<div class="kjy-table">
+						<table>
+							<thead>
+								<tr>
+									<th class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',allIsActive?'icon-checked':'']" v-on:click="selectAllData()"></div>序号</th>
+									<th>社区名称</th>
+									<th>归属地</th>
+									<th>详细地址</th>
+									<th>所属物业</th>
+									<th>缴费码</th>
+									<th>创建时间</th>
+									<th>操作</th>
+								</tr>
+							</thead>
+
+							<tbody id="tbody">
+								<tr v-for="(t,i) in dataList">
+									<td class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',t.isActive?'icon-checked':'']" v-on:click="selectOneData(t)"></div>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+									<td v-bind:title="t.name">{{t.name}}</td>
+									<td>{{t.province}}-{{t.city}}-{{t.county}}</td>
+									<td v-bind:title="t.address">{{t.address}}</td>
+									<td>{{t.pmcName}}</td>
+									<td>
+										<a href="" v-bind:download="t.name" v-bind:id="'QRCode'+t.id" v-on:click="downloadQRCode($event);"></a>
+									</td>
+									<td>{{t.createTime}}</td>
+									<td>
+										<ul class="opera-box">
+											<li v-on:click="community(t);">编辑</li>
+											<li v-on:click="billCollection(t);">账单</li>
+											<li v-on:click="fee(t);">缴费项目</li>
+											<li v-on:click="feeRecord(t);">线下缴费</li>
+											<li v-on:click="appFunctionPrivilege(t);">分配菜单</li>
+										</ul>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="page-box"></div>
+				</div>
+			</div>
+	</body>
+	<script>
+		param.pmcList = [];
+		loadVue(".v-dom", param);
+
+		//新建或编辑
+		function community(obj) {
+			if(obj) {
+				var title = "编辑社区";
+			} else {
+				var title = "新建社区";
+			}
+			openMask("parts/community", title, ["686px", "326px"], function(layerDom, layerIframe) {
+				if(obj) {
+					layerIframe.setData.parentData = obj;
+					layerDom.find("#name").val(obj.name);
+					layerDom.find("#address").val(obj.address);
+					layerDom.find("#longitude").val(obj.longitude);
+					layerDom.find("#latitude").val(obj.latitude);
+					layerDom.find("#province").val(obj.province).change();
+					layerDom.find("#city").val(obj.city).change();
+					layerDom.find("#county").val(obj.county);
+					layerDom.find("#pmcId").val(obj.pmcId);
+					layerDom.find("#pmcName").val(obj.pmcName);
+					layerDom.find("#capacity").val(obj.capacity);
+					layerDom.find("#area").val(obj.area);
+					layerDom.find("#prepayCode").val(obj.prepayCode);
+					layerDom.find("#postPayCode").val(obj.postPayCode);
+				}
+			})
+		}
+
+		//账单
+		function billCollection(obj) {
+			openMask("pages/billCollection", obj.name + "账单", ["100%", "100%"], function(layerDom, layerIframe) {
+				layerIframe.setData.parentData = obj;
+				layerIframe.loadData();
+			})
+		}
+
+		//缴费项目
+		function fee(obj) {
+			openMask("pages/fee", obj.name + "缴费项目", ["100%", "100%"], function(layerDom, layerIframe) {
+				layerIframe.setData.parentData = obj;
+				layerIframe.loadData();
+			})
+		}
+
+		//线下缴费
+		function feeRecord(obj) {
+			openMask("pages/feeRecord", obj.name + "线下缴费", ["100%", "100%"], function(layerDom, layerIframe) {
+				layerIframe.setData.parentData = obj;
+				layerIframe.loadData();
+			});
+		}
+
+		//分配菜单
+		function appFunctionPrivilege(obj) {
+			openMask("pages/appFunctionPrivilege", obj.name + "分配菜单", ["100%", "100%"], function(layerDom, layerIframe) {
+				layerIframe.setData.parentData = obj;
+				layerIframe.loadData();
+			});
+		}
+
+		//删除
+		function del() {
+			if(idList.length == 0) {
+				layer.msg("请选择社区");
+				return false;
+			}
+			openConfirm("确定删除所选社区吗？", function() {
+				var param = {
+					idList: idList
+				}
+				request("POST", "property/community/delete.do", param, true, function(res) {
+					loadData();
+					layer.closeAll("dialog");
+				}, function(res) {
+					if(res.code == "0401") {
+						layer.msg("物业社区下有房屋关联，如想删除物业社区，请删除社区房屋");
+					} else {
+						layer.msg("删除失败");
+					}
+				})
+			})
+		}
+
+		//加载数据
+		function loadData() {
+			var param = {
+				page: pageNo,
+				name: $("#name").val(),
+				address: $("#address").val(),
+				pmcName: $("#pmcName").val()
+			};
+			request("POST", "property/community/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				var origin = window.location.origin;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+					dataList[i].QRCodeText = origin + "/linklive/mobile/payment/index.html?communityId=" + dataList[i].id;
+					dataList[i].area = parseFloat(dataList[i].area).toFixed(2);
+				}
+				setData.dataList = dataList;
+				setData.allIsActive = false;
+				setData.isInit = true;
+				loadPage();
+				nextTick(function() {
+					for(var i = 0; i < dataList.length; i++) {
+						makeQRCode(dataList[i]);
+					}
+				})
+			}, function(res) {
+				layer.msg("社区加载失败");
+			});
+		}
+
+		//加载物业公司
+		function loadPmc() {
+			var param = {
+				pageSize: "1000"
+			}
+			request("POST", "property/pmc/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				if(dataList.length == 0) {
+					layer.msg("请先新建物业公司", {
+						time: 2000
+					}, function() {
+						tabNav("1-1");
+					});
+				} else {
+					setData.pmcList = dataList;
+				}
+			}, function(res) {
+				layer.msg("物业公司加载失败");
+			})
+		}
+
+		loadPmc();
+		loadData();
+	</script>
+
+</html>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="main-mask main-mask-bottom">
+			<div class="con">
+				<div class="mask-list">
+					<div class="mask-list-name"><span>*</span><span class="text">消息类型</span>：</div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="messageType" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="text">外链地址</span>：</div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="url" value="" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span>*</span><span class="text">所属社区</span>：</div>
+					<div class="mask-list-value mask-list200">
+						<input type="text" name="" id="communityName" disabled="disabled" class="required" />
+						<input type="hidden" name="" id="communityId" class="required" />
+					</div>
+					<div class="btn icon icon-select" onclick="selectxq('communityName','communityId')">选择社区</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span>*</span><span class="text">消息内容</span>：</div>
+					<div class="mask-list-value">
+						<textarea name="" rows="" cols="" class="required"></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="mask-btn-box">
+				<div class="btn-box">
+					<div class="btn icon icon-save" onclick="edit();" id="creatsave">确定</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		function selectxq(sname, sid) {
+			openMask('', "selectxq", "选择社区", "98%", "98%", function(layerDom, layerIframe) {
+				layerIframe[0].contentWindow.loadData(sname, sid);
+			})
+		}
+
+		//编辑
+		function edit() {
+			var checkI = checkInput();
+			if(checkI == true) {
+				var param = {
+					id: $(".main-mask").attr("data-id"),
+					name: $("#name").val(),
+					charger: $("#charger").val(),
+					chargerTelephone: $("#chargerTelephone").val(),
+					account: $("#account").val(),
+					description: $("#description").val()
+				};
+				request('POST', '/property/message/saveOrUpdate.do', param, true, function(res) {
+					parent.layer.close(index);
+					parent.layer.msg("操作成功");
+				}, function(res) {
+					layer.msg('操作失败，请检查网络或重试');
+				})
+			}
+		}
+	</script>
+
+</html>

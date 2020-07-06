@@ -1,0 +1,177 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/area.js"></script>
+		<script src='../js/qiniu/qiniu.min.js'></script>
+		<script src='../js/qiniu/plupload.full.min.js'></script>
+		<script src="../js/upload.js?v=720a47cae8"></script>
+		<script src="../js/imageLoadInit.js"></script>
+		<script src="../js/imageLoad.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="mask-box v-dom" v-cloak>
+			<div class="mask-inner-box">
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">封面：</span></div>
+					<div class="mask-list-value">
+						<div class="img-box">
+							<img src="" alt="" data-width="690" data-height="336" onerror="this.src='../img/common/no-img.png'" class="required-img" />
+						</div>
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn upload-img" id="coverImage">上传</div>
+						</div>
+					</div>
+				</div>
+				<div class="mask-list c_b">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">标题：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="title" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">地址：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="url" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">推送方式：</span></div>
+					<div class="mask-list-value">
+						<select name="" id="pushType" v-on:change="selectPushType();" class="required">
+							<option value="">请选择</option>
+							<option value="0">全部</option>
+							<option value="1">省</option>
+							<option value="2">市</option>
+							<option value="3">县</option>
+							<option value="4">社区</option>
+						</select>
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">排序：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="sort" value="" placeholder="填写数字" class="required width-80 regular-positive-int" />
+					</div>
+				</div>
+				<div class="mask-list" v-if="pushType == '4'">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">推送社区：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="communityName" disabled="disabled" />
+						<input type="hidden" name="" id="communityId" class="required" />
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn" onclick="selectCommunity();">选择</div>
+						</div>
+					</div>
+				</div>
+				<div class="mask-list" v-if="pushType == '1' || pushType == '2' || pushType == '3'">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">推送地区：</span></div>
+					<div class="mask-list-value">
+						<select name="province" id="province" class="required width-147"></select>
+						<select name="city" id="city" class="required width-147" v-show="pushType == '2' || pushType == '3'"></select>
+						<select name="county" id="county" class="required width-147" v-if="pushType == '3'"></select>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="save();">保存</div>
+					<div class="btn" onclick="closeMask();">返回</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		param.pushType = "";
+		loadVue(".v-dom", param);
+
+		function selectCommunity() {
+			parent.openMask("parts/selectCommunity", "选择社区", ["800px", "500px"], function(layerDom, layerIframe) {
+				var dataInfo = {
+					id: $("#communityId").val(),
+					name: $("#communityName").val()
+				}
+				layerIframe.dataInfo = dataInfo;
+				layerIframe.loadData();
+			});
+		}
+
+		function selectPushType() {
+			var pushType = $("#pushType").val();
+			setData.pushType = pushType;
+			nextTick(function() {
+				if(pushType != "0" || pushType != "4") {
+					var province = $("#province").val();
+					var city = $("#city").val();
+					if(pushType == "1" || pushType == "2") {
+						new PCAS("province", "city", province, city);
+					} else if(pushType == "3") {
+						new PCAS("province", "city", "county", province, city);
+					}
+				}
+			});
+		}
+
+		//保存
+		function save() {
+			if(checkRegular()) {
+				var parentData = setData.parentData;
+				var pushType = setData.pushType;
+				var province = $("#province").val();
+				var city = $("#city").val();
+				var county = $("#county").val();
+				if(pushType == "0") {
+					var pushKey = "全部范围";
+				} else if(pushType == "1") {
+					var pushKey = province;
+				} else if(pushType == "2") {
+					var pushKey = province + "-" + city;
+				} else if(pushType == "3") {
+					var pushKey = province + "-" + city + "-" + county;
+				} else if(pushType == "4") {
+					var pushKey = $("#communityId").val();
+				}
+				var param = {
+					title: $("#title").val(),
+					url: $("#url").val(),
+					sort: $("#sort").val(),
+					pushType: $("#pushType").val(),
+					pushKey: pushKey,
+					coverImage: $("#coverImage").parents(".btn-box").siblings().find("img").attr("src").replace(imageUrl, "")
+				};
+				if(parentData) {
+					param.id = parentData.id;
+				}
+				request("POST", "property/banner/saveOrUpdate.do", param, true, function(res) {
+					closeMask();
+					parent.layer.msg("操作成功");
+					parent.loadData();
+				}, function(res) {
+					layer.msg("操作失败");
+				})
+			}
+		}
+	</script>
+
+</html>

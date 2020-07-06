@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="KJYBOX VDOM" v-cloak>
+			<div class="kjy-title">操作记录</div>
+			<div class="btn-box">
+				<div class="btn icon icon-reload" onclick="reloadPage();">刷新</div>
+			</div>
+			<div class="kjy-table">
+				<table>
+					<thead>
+						<tr>
+							<th>序号</th>
+							<th>操作人员</th>
+							<th>操作内容</th>
+							<th>操作数据表</th>
+							<th>操作时间</th>
+						</tr>
+					</thead>
+
+					<tbody id="tbody">
+						<tr>
+							<td>1</td>
+							<td>A人</td>
+							<td>修改</td>
+							<td>康津源</td>
+							<td>2018-7-11</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="page-box"></div>
+		</div>
+	</body>
+	<script>
+		//		加载数据
+		function loadData() {
+			var param = {
+				page: page,
+				blur: $("#salerName").val(),
+				gender: $("#gender").val()
+			};
+			request('POST', '/property/saler/queryList.do', param, true, function(res) {
+				setData.dataList = res.data;
+				setData.allIsActive = false;
+			}, function() {
+				layer.msg("操作记录加载失败");
+			})
+		}
+
+		loadPage(0, function() {
+			setTime('#cs');
+			setTime('#ce');
+		});
+	</script>
+
+</html>

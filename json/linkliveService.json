@@ -1,0 +1,112 @@
+[
+    {
+        "id":"1",
+        "name":"系统服务",
+        "icon":"icon-set-up",
+        "selectIcon":"icon-select-set-up",
+        "sort":"10",
+        "isActive":true,
+        "children":[
+
+        ]
+    },
+    {
+        "id":"2",
+        "name":"物业基础信息",
+        "icon":"icon-base-info",
+        "selectIcon":"icon-select-base-info",
+        "sort":"1",
+        "isActive":true,
+        "children":[
+
+        ]
+    },
+    {
+        "id":"3",
+        "name":"物业信息服务",
+        "icon":"icon-info",
+        "selectIcon":"icon-select-info",
+        "sort":"2",
+        "isActive":true,
+        "children":[
+
+        ]
+    },
+    {
+        "id":"4",
+        "name":"物业品质服务",
+        "icon":"icon-quality",
+        "selectIcon":"icon-select-quality",
+        "sort":"5",
+        "isActive":true,
+        "children":[
+
+        ]
+    },
+    {
+        "id":"5",
+        "name":"物业管理服务",
+        "icon":"icon-property",
+        "selectIcon":"icon-select-property",
+        "sort":"4",
+        "isActive":true,
+        "children":[
+
+        ]
+    },
+    {
+        "id":"6",
+        "name":"财务信息",
+        "icon":"icon-finance",
+        "selectIcon":"icon-select-finance",
+        "sort":"3",
+        "isActive":true,
+        "children":[
+
+        ]
+    },
+    {
+        "id":"7",
+        "name":"电子商务",
+        "icon":"icon-shop",
+        "selectIcon":"icon-select-shop",
+        "sort":"8",
+        "isActive":true,
+        "children":[
+
+        ]
+    },
+    {
+        "id":"8",
+        "name":"邻里社交",
+        "icon":"icon-social-contact",
+        "selectIcon":"icon-select-social-contact",
+        "sort":"6",
+        "isActive":true,
+        "children":[
+
+        ]
+    },
+    {
+        "id":"9",
+        "name":"消安综合",
+        "icon":"icon-facility",
+        "selectIcon":"icon-select-facility",
+        "sort":"7",
+        "isActive":true,
+        "children":[
+
+        ]
+    },
+    {
+        "id":"10",
+        "name":"统计分析",
+        "icon":"icon-statistics",
+        "selectIcon":"icon-select-statistics",
+        "sort":"9",
+        "isActive":true,
+        "children":[
+
+        ]
+    }
+]

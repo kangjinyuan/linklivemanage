@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="mask-box v-dom" v-cloak>
+			<div class="mask-inner-box">
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">用户名称：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="name" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">账号：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" value="" id="account" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">密码：</span></div>
+					<div class="mask-list-value">
+						<input type="password" name="" value="" id="password" class="required regular-password" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">所属物业：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="pmcName" disabled="disabled" class="required" />
+						<input type="hidden" name="" id="pmcId" class="required" />
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn" onclick="selectPmc()">选择</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="save();">保存</div>
+					<div class="btn" onclick="closeMask();">返回</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		param.privilege = [];
+		loadVue(".v-dom", param);
+
+		//选择物业
+		function selectPmc(sname, sid) {
+			parent.openMask("parts/selectPmc", "选择物业", ["800px", "500px"], function(layerDom, layerIframe) {
+				var dataInfo = {
+					id: $("#pmcId").val(),
+					name: $("#pmcName").val()
+				}
+				layerIframe.dataInfo = dataInfo;
+				layerIframe.loadData();
+			});
+		}
+
+		//保存
+		function save() {
+			if(checkRegular()) {
+				var privilege = setData.privilege;
+				var param = {
+					name: $("#name").val(),
+					account: $("#account").val(),
+					password: $("#password").val(),
+					pmcId: $("#pmcId").val(),
+					pmcName: $("#pmcName").val(),
+					privillege: JSON.stringify(privilege)
+				};
+				request("POST", "account/administrator/saveOrUpdate.do", param, true, function(res) {
+					closeMask();
+					parent.layer.msg("操作成功");
+					parent.loadData();
+				}, function(res) {
+					if(res.code == "0004") {
+						layer.msg("该账号已存在，请勿重复操作");
+					} else {
+						layer.msg("操作失败");
+					}
+				});
+			}
+		}
+	</script>
+
+</html>

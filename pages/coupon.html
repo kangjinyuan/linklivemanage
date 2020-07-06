@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../js/area.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="KJYBOX VDOM" v-cloak>
+			<div class="kjy-title">优惠券管理</div>
+			<div class="search-box">
+				<div class="search-text">
+					<div class="search">
+						<div class="search-name">优惠券名称：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="name" placeholder="输入优惠券名称" />
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn icon icon-reload" onclick="reloadPage();">刷新</div>
+				<div class="btn icon icon-search" onclick="sreach();">查询</div>
+				<div class="btn icon icon-add" onclick="showCoupon(0,'','新建优惠券')">新建优惠券</div>
+				<div class="btn icon icon-del" onclick="del();">删除</div>
+			</div>
+			<div class="kjy-data-box">
+				<div class="full-box" v-if="dataList.length == 0">
+					<div class="no-data-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有优惠券哦</div>
+					</div>
+				</div>
+				<div class="kjy-table" v-else>
+					<table>
+						<thead>
+							<tr>
+								<th class="padding20">
+									<div v-bind:class="['no-check',allIsActive?'checked':'']" v-on:click="selectAllData()"></div>序号</th>
+								<th>优惠券名称</th>
+								<th>截止时间</th>
+								<th>满减金额（元）</th>
+								<th>优惠金额（元）</th>
+								<th>更新时间</th>
+								<th>创建时间</th>
+								<th>操作</th>
+							</tr>
+						</thead>
+
+						<tbody id="tbody">
+							<tr v-for="(t,i) in dataList">
+								<td class="padding20">
+									<div v-bind:class="['no-check',t.isActive?'checked':'']" v-on:click="selectOneData(t)"></div>{{((currentPage-1)*pageSize)+(i+1)}}</td>
+								<td>满100减50</td>
+								<td>{{t.updateTime | resetTime(0)}}</td>
+								<td>100</td>
+								<td>10</td>
+								<td>{{t.updateTime}}</td>
+								<td>{{t.createTime}}</td>
+								<td>
+									<div class="btn icon icon-edit" v-on:click="showCoupon(1,t,'编辑优惠券')">编辑</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="page-box"></div>
+		</div>
+	</body>
+	<script>
+		//新建弹出
+		function showCoupon(flag, obj, title) {
+			openMask(obj.id, "../part/coupon", title, "330px", "400px", function(layerDom, layerIframe) {
+				layerDom.find("#name").val(obj.name);
+				layerDom.find("#address").val(obj.address);
+				judeEdit(flag, layerDom);
+			})
+		}
+
+		//删除数据
+		function del() {
+			delData("确定删除所选优惠券？", function(param) {
+				request('POST', '/property/community/delete.do', param, true, function(res) {
+					loadData();
+					layer.closeAll('dialog');
+				}, function(res) {
+					layer.msg("删除失败，请检查网络或重试");
+				})
+			})
+		}
+
+		//		加载数据
+		function loadData() {
+			var param = {
+				page: page,
+				name: $("#name").val()
+			};
+			request('POST', '/property/community/queryList.do', param, true, function(res) {
+				var dataList = res.data;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+				}
+				setData.dataList = dataList;
+				setData.allIsActive = false;
+			}, function(res) {
+				layer.msg("优惠券加载失败");
+			})
+		}
+
+		loadPage(0, function() {
+			loadData();
+		});
+	</script>
+
+</html>

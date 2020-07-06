@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/common/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/imageLoadInit.js"></script>
+		<script src="../js/imageLoad.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="mask-box v-dom" v-cloak>
+			<div class="mask-inner-box">
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="text">帖子内容</span>：</div>
+					<div class="mask-list-value">
+						<textarea name="" rows="" cols="" v-bind:value="parentData.content" class="width-338"></textarea>
+					</div>
+				</div>
+				<div class="mask-list" v-if="parentData.imageList.length > 0">
+					<div class="mask-list-name"><span class="text">帖子图片：</div>
+					<div class="mask-list-value">
+						<div v-for="(image,i) in parentData.imageList" v-bind:class="['img-box',(i+1)%3==1?'c_b':'',i>2?'margin-top-20':'']">
+							<img v-bind:src="image" alt="" onerror="this.src='../img/common/no-img.png'" />
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="closeMask();">返回</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		loadVue(".v-dom", param);
+	</script>
+
+</html>

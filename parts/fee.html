@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="mask-box v-dom" v-cloak>
+			<div class="mask-inner-box">
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">缴费类别：</span></div>
+					<div class="mask-list-value">
+						<select name="" id="feeCategory" class="required" v-on:change="selectFeeCategory();">
+							<option value="">请选择</option>
+							<option value="物业费">物业费</option>
+							<option value="水费">水费</option>
+							<option value="电费">电费</option>
+							<option value="车位管理费">车位管理费</option>
+							<option value="固定停车费">固定停车费</option>
+							<option value="临时停车费">临时停车费</option>
+							<option value="生活垃圾处理费">生活垃圾处理费</option>
+							<option value="储藏间管理费">储藏间管理费</option>
+							<option value="房租">房租</option>
+							<option value="供暖费">供暖费</option>
+							<option value="其他">其他</option>
+						</select>
+					</div>
+				</div>
+				<div class="mask-list" v-if="feeCategory == '固定停车费'">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">缴费周期：</span></div>
+					<div class="mask-list-value">
+						<select name="" id="feeName" class="required">
+							<option value="">请选择</option>
+							<option value="1个月">1个月</option>
+							<option value="3个月">3个月</option>
+							<option value="6个月">6个月</option>
+							<option value="1年">1年</option>
+						</select>
+					</div>
+				</div>
+				<div class="mask-list" v-else>
+					<div class="mask-list-name"><span class="text">扩展名</span>：</div>
+					<div class="mask-list-value">
+						<input type="text" name="" value="" id="feeName" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">项目属性：</span></div>
+					<div class="mask-list-value">
+						<select name="" id="feeProperty" class="required">
+							<option value="">请选择</option>
+							<option value="1">预付费</option>
+							<option value="0">后付费</option>
+						</select>
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">计算方式：</span></div>
+					<div class="mask-list-value">
+						<select name="" id="calculateType" class="required">
+							<option value="">请选择</option>
+							<option value="0">自定义费用</option>
+							<option value="1">单价*数量</option>
+						</select>
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">计费单价：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" value="" id="fee" placeholder="填写数字" class="required width-80 regular-positive-number" />
+					</div>
+					<div class="mask-unit-box">元</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="save();">保存</div>
+					<div class="btn" onclick="closeMask();">返回</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		param.feeCategory = "";
+		param.communityInfo = {};
+		loadVue(".v-dom", param);
+
+		function selectFeeCategory() {
+			setData.feeCategory = $("#feeCategory").val();
+		}
+
+		//编辑
+		function save() {
+			if(checkRegular()) {
+				var parentData = setData.parentData;
+				var communityInfo = setData.communityInfo;
+				var feeCategory = setData.feeCategory;
+				var feeName = $("#feeName").val();
+				var feeProperty = $("#feeProperty").val();
+				if(feeName) {
+					feeName = feeCategory + "-" + feeName;
+				} else {
+					feeName = feeCategory;
+				}
+				if((feeCategory == "水费" || feeCategory == "电费") && feeProperty == "0") {
+					var isDeputy = "1";
+				} else {
+					var isDeputy = "0";
+				}
+				var param = {
+					feeName: feeName,
+					feeProperty: feeProperty,
+					calculateType: $("#calculateType").val(),
+					isDeputy: isDeputy,
+					fee: $("#fee").val(),
+					communityId: communityInfo.id,
+					communityName: communityInfo.name
+				};
+				if(parentData) {
+					param.id = parentData.id;
+				}
+				request("POST", "property/fee/saveOrUpdate.do", param, true, function(res) {
+					closeMask();
+					parent.layer.msg("操作成功");
+					parent.loadData();
+				}, function(res) {
+					if(res.code == "0004") {
+						layer.msg("该缴费项目已存在，请勿重复操作");
+					} else {
+						layer.msg("操作失败");
+					}
+				})
+			}
+		}
+	</script>
+
+</html>

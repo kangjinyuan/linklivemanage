@@ -1,0 +1,199 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="search-box">
+				<div class="search-row-box">
+					<div class="search-list">
+						<div class="search-name">项目名称：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="feeName" placeholder="项目名称" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">项目属性：</div>
+						<div class="search-value">
+							<select name="" id="feeProperty" v-on:change="search();">
+								<option value="">全部</option>
+								<option value="1">预付费</option>
+								<option value="0">后付费</option>
+							</select>
+						</div>
+					</div>
+					<div class="search-btn-box">
+						<div class="btn" onclick="search();">查询</div>
+						<div class="btn" onclick="reloadPage();">重置</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="fee()">新建</div>
+					<div class="btn" onclick="del();">删除</div>
+				</div>
+			</div>
+			<div class="kjy-data-box" v-if="isInit">
+				<div class="no-data-box" v-if="dataList.length == 0">
+					<div class="no-data-inner-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有缴费项目哦</div>
+					</div>
+				</div>
+				<div class="kjy-data-inner-box" v-else>
+					<div class="kjy-table">
+						<table>
+							<thead>
+								<tr>
+									<th class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',allIsActive?'icon-checked':'']" v-on:click="selectAllData()"></div>序号</th>
+									<th>项目名称</th>
+									<th>项目属性</th>
+									<th>计算公式</th>
+									<th>计费单价（元）</th>
+									<th>创建时间</th>
+									<th>操作</th>
+								</tr>
+							</thead>
+
+							<tbody id="tbody">
+								<tr v-for="(t,i) in dataList">
+									<td class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',t.isActive?'icon-checked':'']" v-on:click="selectOneData(t)"></div>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+									<td v-bind:title="t.feeName">{{t.feeName}}</td>
+									<td>{{t.feePropertyText}}</td>
+									<td>{{t.calculateTypeText}}</td>
+									<td>{{t.fee}}</td>
+									<td>{{t.createTime}}</td>
+									<td>
+										<ul class="opera-box">
+											<li v-on:click="fee(t);">编辑</li>
+										</ul>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="page-box"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		loadVue(".v-dom", param);
+
+		function showFeeClassify() {
+			openMask("parts/feeClassify", "选择缴费类别", ["340px", "130px"]);
+		}
+
+		//新建或编辑
+		function fee(obj) {
+			var parentData = setData.parentData;
+			if(obj) {
+				var title = "编辑缴费项目";
+			} else {
+				var title = "新建缴费项目";
+			}
+			openMask("parts/fee", title, ["334px", "276px"], function(layerDom, layerIframe) {
+				layerIframe.setData.communityInfo = parentData;
+				if(obj) {
+					layerIframe.setData.parentData = obj;
+					var feeName = obj.feeName.split("-");
+					layerDom.find("#feeCategory").val(feeName[0]);
+					layerIframe.selectFeeCategory();
+					layerIframe.nextTick(function() {
+						layerDom.find("#feeName").val(feeName[1]);
+					})
+					layerDom.find("#calculateType").val(obj.calculateType);
+					layerDom.find("#fee").val(obj.fee);
+					layerDom.find("#feeProperty").val(obj.feeProperty);
+				}
+			});
+		}
+
+		//删除数据
+		function del() {
+			delData("确定删除所选缴费项目？", function(param) {
+				request('POST', '/property/fee/delete.do', param, true, function(res) {
+					loadData(setData.parentData);
+					layer.closeAll('dialog');
+				}, function(res) {
+					layer.msg("删除失败，请检查网络或重试");
+				})
+			})
+		}
+
+		//删除
+		function del() {
+			if(idList.length == 0) {
+				layer.msg("请选择缴费项目");
+				return false;
+			}
+			openConfirm("确定删除所选缴费项目吗？", function() {
+				var param = {
+					idList: idList
+				}
+				request("POST", "property/fee/delete.do", param, true, function(res) {
+					loadData();
+					layer.closeAll("dialog");
+				}, function(res) {
+					layer.msg("删除失败");
+				})
+			})
+		}
+
+		//加载数据
+		function loadData() {
+			var parentData = setData.parentData;
+			var param = {
+				page: pageNo,
+				feeName: $("#feeName").val(),
+				feeProperty: $("#feeProperty").val(),
+				communityId: parentData.id
+			};
+			request("POST", "property/fee/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+					dataList[i].fee = parseFloat(dataList[i].fee).toFixed(2);
+					if(dataList[i].calculateType == "0") {
+						dataList[i].calculateTypeText = "自定义费用";
+					} else if(dataList[i].calculateType == "1") {
+						dataList[i].calculateTypeText = "单价*数量";
+					}
+					if(dataList[i].feeProperty == "0") {
+						dataList[i].feePropertyText = "后付费";
+					} else if(dataList[i].feeProperty == "1") {
+						dataList[i].feePropertyText = "预付费";
+					}
+				}
+				setData.dataList = dataList;
+				setData.allIsActive = false;
+				setData.isInit = true;
+				loadPage();
+			}, function() {
+				layer.msg("缴费项目加载失败");
+			})
+		}
+	</script>
+
+</html>

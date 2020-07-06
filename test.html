@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="css/reset.css" />
+		<link rel="stylesheet" href="layui/css/layui.css" />
+		<link rel="stylesheet" href="css/common.css?v=890428a1a1" />
+		<script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+		<script type="text/javascript" src="layui/layui.all.js"></script>
+		<script type="text/javascript" src="js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script type="text/javascript" src="js/common.js?v=ac90fbe080"></script>
+		<script type="text/javascript" src="js/upload.js?v=720a47cae8"></script>
+		<script type="text/javascript" src='js/qiniu/qiniu.min.js'></script>
+		<script type="text/javascript" src='js/qiniu/plupload.full.min.js'></script>
+		<style type="text/css">
+			.box {
+				width: 600px;
+				height: 200px;
+				margin: 50px auto;
+				border: 1px solid #000;
+			}
+			
+			.list{
+				width: 200px;
+				float: left;
+			}
+			
+			.list img,
+			.list button {
+				display: block;
+				width: 100%;
+			}
+			
+			.list img {
+				height: 150px;
+			}
+			
+			.list button {
+				height: 50px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="box">
+			<div class="list">
+				<img src="" alt="" />
+				<button class="uploadimg" id="pickfiles1">选择图片</button>
+			</div>
+			<div class="list">
+				<img src="" alt="" />
+				<button class="uploadimg" id="pickfiles2">选择图片</button>
+			</div>
+			<div class="list">
+				<video controls="controls" src=""></video>
+				<button class="uploadvideo" id="pickfiles3">选择图片</button>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		uploadImgInit();
+		uploadVideoInit();
+	</script>
+
+</html>

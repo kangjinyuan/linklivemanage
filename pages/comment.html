@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="KJYBOX VDOM" v-cloak>
+			<div class="kjy-title">评价管理</div>
+			<div class="search-box">
+				<div class="search-text">
+					<div class="search">
+						<div class="search-name">用户昵称：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="name" placeholder="输入用户昵称" />
+						</div>
+					</div>
+					<div class="search">
+						<div class="search-name">用户手机号：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="address" placeholder="输入用户手机号" />
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn icon icon-reload" onclick="reloadPage();">刷新</div>
+				<div class="btn icon icon-search" onclick="sreach();">查询</div>
+			</div>
+			<div class="kjy-data-box">
+				<div class="full-box" v-if="dataList.length == 0">
+					<div class="no-data-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有评价哦</div>
+					</div>
+				</div>
+				<div class="kjy-table" v-else>
+					<table>
+						<thead>
+							<tr>
+								<th>序号</th>
+								<th>用户昵称</th>
+								<th>用户手机号</th>
+								<th>评论内容</th>
+								<th>更新时间</th>
+								<th>创建时间</th>
+							</tr>
+						</thead>
+
+						<tbody id="tbody">
+							<tr v-for="(t,i) in dataList">
+								<td>{{((currentPage-1)*pageSize)+(i+1)}}</td>
+								<td>康小源</td>
+								<td>15932119504</td>
+								<td>东方红城市建设集团</td>
+								<td>{{t.updateTime}}</td>
+								<td>{{t.createTime}}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="page-box"></div>
+		</div>
+	</body>
+	<script>
+		//		加载数据
+		function loadData() {
+			var param = {
+				page: page
+			};
+			request('POST', '/shop/comment/queryList.do', param, true, function(res) {
+				setData.dataList = res.data;
+			}, function(res) {
+				layer.msg("评价加载失败");
+			})
+		}
+
+		loadPage(0, function() {
+			loadData();
+		});
+	</script>
+
+</html>

@@ -1,0 +1,300 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../layui/css/layui.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/imageLoadInit.js"></script>
+		<script src="../js/imageLoad.js"></script>
+		<script src="../js/upload.js?v=720a47cae8"></script>
+		<script src='../js/qiniu/qiniu.min.js'></script>
+		<script src='../js/qiniu/plupload.full.min.js'></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="mask-box v-dom" v-cloak>
+			<div class="mask-inner-box">
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">广告名称：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="name" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="text">播放间隔：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" value="" id="playInterval" placeholder="填写数字" class="width-80 regular-positive-int" />
+					</div>
+					<div class="mask-unit-box">秒</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">开始时间：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="startTime" value="" placeholder="yyyy-mm-dd" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">结束时间：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="endTime" value="" placeholder="yyyy-mm-dd" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">发布类别：</span></div>
+					<div class="mask-list-value">
+						<select name="" id="releaseType" class="required" onchange="selectReleaseType();">
+							<option value="">请选择</option>
+							<option value="1">社区</option>
+							<option value="2">门禁</option>
+						</select>
+					</div>
+				</div>
+				<div class="mask-list" v-if="releaseType == '1'">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">社区范围：</span></div>
+					<div class="mask-list-value">
+						<input type="text" disabled="disabled" placeholder="暂无社区范围" v-if="contentList.length == 0" />
+						<ul class="range-box" v-else>
+							<li v-for="(t,i) in contentList">
+								{{t.name}}
+								<div class="icon icon-del-range" v-on:click="delContent(i);"></div>
+							</li>
+						</ul>
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn" onclick="selectCommunityRange();">选择</div>
+						</div>
+					</div>
+				</div>
+				<div class="mask-list" v-if="releaseType == '2'">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">门禁范围：</span></div>
+					<div class="mask-list-value">
+						<input type="text" disabled="disabled" placeholder="暂无门禁范围" v-if="contentList.length == 0" />
+						<ul class="range-box" v-else>
+							<li v-for="(t,i) in contentList">
+								{{t.deviceName}}
+								<div class="icon icon-del-range" v-on:click="delContent(i);"></div>
+							</li>
+						</ul>
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn" onclick="selectDoorMasterRange();">选择</div>
+						</div>
+					</div>
+				</div>
+				<div class="mask-list c_b">
+					<div class="mask-list-name"><span class="text">图片1：</span></div>
+					<div class="mask-list-value">
+						<div class="img-box">
+							<img src="" alt="" onerror="this.src='../img/common/no-img.png'" />
+						</div>
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn upload-img" id="image0">上传</div>
+						</div>
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="text">图片2：</span></div>
+					<div class="mask-list-value">
+						<div class="img-box">
+							<img src="" alt="" onerror="this.src='../img/common/no-img.png'" />
+						</div>
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn upload-img" id="image1">上传</div>
+						</div>
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="text">图片3：</span></div>
+					<div class="mask-list-value">
+						<div class="img-box">
+							<img src="" alt="" onerror="this.src='../img/common/no-img.png'" />
+						</div>
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn upload-img" id="image2">上传</div>
+						</div>
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="text">视频：</span></div>
+					<div class="mask-list-value">
+						<div class="video-box">
+							<video controls="controls" src=""></video>
+						</div>
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn upload-video" id="video">上传</div>
+						</div>
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="text">备注</span>：</div>
+					<div class="mask-list-value">
+						<textarea name="" rows="" cols="" id="memo" class="width-450"></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="save();">保存</div>
+					<div class="btn" onclick="closeMask();">返回</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		param.releaseType = "";
+		param.communityIdList = [];
+		param.doorMasterIdList = [];
+		loadVue(".v-dom", param);
+
+		$(function() {
+			setTime({
+				elem: "#startTime",
+				type: "date",
+				format: "yyyy-MM-dd",
+			});
+			setTime({
+				elem: "#endTime",
+				type: "date",
+				format: "yyyy-MM-dd",
+			});
+		});
+
+		function selectCommunityRange() {
+			parent.openMask("parts/selectCommunityRange", "选择社区", ["800px", "500px"], function(layerDom, layerIframe) {
+				layerIframe.setData.contentList = setData.contentList;
+				layerIframe.loadSelectDataList();
+			});
+		}
+
+		function selectDoorMasterRange() {
+			parent.openMask("parts/selectDoorMasterRange", "选择门禁", ["800px", "500px"], function(layerDom, layerIframe) {
+				layerIframe.setData.contentList = setData.contentList;
+				layerIframe.loadSelectDataList();
+			});
+		}
+
+		function selectReleaseType() {
+			setData.releaseType = $("#releaseType").val();
+			setData.communityIdList = [];
+			setData.doorMasterIdList = [];
+			setData.contentList = [];
+		}
+
+		//保存
+		function save() {
+			if(checkRegular()) {
+				var parentData = setData.parentData;
+				var releaseType = setData.releaseType;
+				resetImage();
+				var videoList = [];
+				for(var i = 0; i < $(".upload-video").length; i++) {
+					var video = $(".upload-video").eq(i).parents(".btn-box").siblings().find("video").attr("src");
+					if(video) {
+						videoList.push(video.replace(videoUrl, ""));
+					}
+				}
+				var imageList = [];
+				for(var i = 0; i < $(".upload-img").length; i++) {
+					var image = $(".upload-img").eq(i).parents(".btn-box").siblings().find("img").attr("src");
+					if(image) {
+						imageList.push(image.replace(imageUrl, ""));
+					}
+				}
+				var releaseIdList = [];
+				var contentList = setData.contentList;
+				for(var i = 0; i < contentList.length; i++) {
+					releaseIdList.push(contentList[i].id);
+				}
+				if(releaseIdList.length == 0) {
+					if(releaseType == "1") {
+						layer.msg("请选择社区范围");
+					} else if(releaseType == "2") {
+						layer.msg("请选择门禁范围");
+					}
+					return false;
+				}
+				if(releaseIdList.length > 10) {
+					if(releaseType == "1") {
+						layer.msg("发布范围不能超过10个社区");
+					} else if(releaseType == "2") {
+						layer.msg("发布范围不能超过10台设备");
+					}
+					return false;
+				}
+				var param = {
+					name: $("#name").val(),
+					startTime: resetTime($("#startTime").val(), 0),
+					endTime: resetTime($("#endTime").val(), 0),
+					memo: $("#memo").val(),
+					playInterval: $("#playInterval").val(),
+					videoList: videoList,
+					imageList: imageList,
+					releaseType: $("#releaseType").val(),
+					releaseIdList: releaseIdList
+				};
+				if(parentData) {
+					param.id = parentData.id;
+				}
+				request("POST", "facility/advertisement/saveOrUpdate.do", param, true, function(res) {
+					closeMask();
+					parent.layer.msg("操作成功");
+					parent.loadData();
+				}, function(res) {
+					layer.msg("操作失败");
+				})
+			}
+		}
+
+		//加载社区
+		function loadCommunity() {
+			var communityIdList = setData.communityIdList;
+			var param = {
+				idList: communityIdList
+			}
+			request("POST", "property/community/v2/queryList.do", param, true, function(res) {
+				setData.contentList = res.data.dataList;
+			}, function(res) {
+				layer.msg("社区加载失败")
+			});
+		}
+
+		//加载社区
+		function loadDoorMaster() {
+			var doorMasterIdList = setData.doorMasterIdList;
+			var param = {
+				idList: doorMasterIdList
+			}
+			request("POST", "facility/doorMaster/v2/queryList.do", param, true, function(res) {
+				setData.contentList = res.data.dataList;
+			}, function(res) {
+				layer.msg("门禁加载失败")
+			});
+		}
+	</script>
+
+</html>

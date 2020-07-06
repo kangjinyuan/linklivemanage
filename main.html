@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="img/common/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="css/reset.css" />
+		<link rel="stylesheet" href="layui/css/layui.css" />
+		<link rel="stylesheet" href="css/common.css?v=890428a1a1" />
+		<link rel="stylesheet" href="css/main.css?v=92a1966b55" />
+		<script src="js/jquery-1.9.1.min.js"></script>
+		<script src="layui/layui.all.js"></script>
+		<script src="layui/layui.js"></script>
+		<script src="js/rightNav.js?v=65d58ce1df"></script>
+		<script src="js/init.js?v=ae8a28c8a1"></script>
+		<script src="js/vue.min.js"></script>
+		<script src="js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="js/common.js?v=ac90fbe080"></script>
+
+	</head>
+
+	<body>
+		<div class="kjy v-dom" v-cloak>
+			<div class="kjy-left-box f_l">
+				<div class="logo-box">
+					<div class="logo-inner-box position-transform-all">
+						<div class="logo-img"></div>
+						<div class="cut-line" v-if="menuSwitch"></div>
+						<div class="logo-text-box" v-if="menuSwitch">
+							<div class="logo-text-inner-box position-transform-vertical">
+								<p>邻客综合</p>
+								<p>LINKLIVE</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="nav-box">
+					<ul class="layui-nav layui-nav-tree">
+						<li class="layui-nav-item" v-bind:data-select-icon="t.selectIcon" v-for="t in dataList" v-if="t.children.length > 0">
+							<div class="disclick-box" v-if="!menuSwitch" v-on:mouseover="showChildMenu($event);"></div>
+							<a href="javascript:;">
+								<i v-bind:class="['icon', t.icon, menuSwitch?'':'icon-position-center']"></i>{{menuSwitch?t.name:''}}
+								<span class="layui-nav-more" v-if="menuSwitch"></span>
+							</a>
+							<div v-bind:class="['layui-nav-child',menuSwitch?'':'nav-child-box']" v-bind:onmouseleave="menuSwitch?'':'closeAllNav();'">
+								<ul>
+									<li v-for="t in t.children">
+										<a v-bind:data-path="t.path" v-bind:data-id="t.id">{{t.name}}</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</div>
+			<div class="kjy-right-box f_r">
+				<div class="user-info-box">
+					<div class="user-info-inner-box">
+						<div v-bind:class="['menu-switch','icon-menu-retract','f_l',menuSwitch?'':'icon-menu-open']" onclick="menuSwitch(this);"></div>
+						<div class="user-info-text f_l">{{currentTime}}</div>
+						<div class="user-info-text f_r">Hi,{{accountInfo.name}}[<span onclick="quit();">退出</span>]</div>
+					</div>
+				</div>
+				<div class="layui-tab" lay-filter="kjy" lay-allowclose="true">
+					<ul class="layui-tab-title" id="rightNav">
+						<li class="layui-this" lay-id="">首页</li>
+					</ul>
+					<div class="layui-tab-content">
+						<div class="layui-tab-item layui-show">
+							<iframe v-bind:src="path" frameborder='0' marginheight='0' marginwidth='0' scrolling='yes' width='100%'></iframe>
+						</div>
+					</div>
+				</div>
+				<div class="copy-right">copyright &copy; 北京闪向科技有限公司</div>
+			</div>
+		</div>
+	</body>
+
+</html>

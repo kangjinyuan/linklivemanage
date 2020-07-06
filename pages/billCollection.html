@@ -1,0 +1,254 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../layui/css/layui.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/jquery.table2excel.min.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="search-box">
+				<div class="search-row-box">
+					<div class="search-list">
+						<div class="search-name">账单编号：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="id" placeholder="账单编号" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">房屋地址：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="address" placeholder="房屋地址" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">缴费项目：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="feeName" placeholder="缴费项目" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">缴费状态：</div>
+						<div class="search-value">
+							<select name="" id="state" v-on:change="search();">
+								<option value="">全部</option>
+								<option value="1">已缴费</option>
+								<option value="0">未缴费</option>
+							</select>
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">支付方式：</div>
+						<div class="search-value">
+							<select name="" id="payPlatform" v-on:change="search();">
+								<option value="">全部</option>
+								<option value="Cash">现金支付</option>
+								<option value="ceb">线上支付</option>
+							</select>
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">收据状态：</div>
+						<div class="search-value">
+							<select name="" id="receiptPrint" v-on:change="search();">
+								<option value="">全部</option>
+								<option value="1">已打印</option>
+								<option value="0">未打印</option>
+							</select>
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">支付开始：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="startTime" placeholder="yyyy-mm-dd" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">支付结束：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="endTime" placeholder="yyyy-mm-dd" />
+						</div>
+					</div>
+					<div class="search-btn-box">
+						<div class="btn" onclick="search();">查询</div>
+						<div class="btn" onclick="reloadPage();">重置</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="exportBillCollection();">导出</div>
+				</div>
+			</div>
+			<div class="kjy-data-box" v-if="isInit">
+				<div class="no-data-box" v-if="dataList.length == 0">
+					<div class="no-data-inner-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有账单记录哦</div>
+					</div>
+				</div>
+				<div class="kjy-data-inner-box" v-else>
+					<div class="kjy-table">
+						<table id="billCollectionExcel">
+							<thead>
+								<tr>
+									<th>序号</th>
+									<th>账单编号</th>
+									<th>账单名称</th>
+									<th>房屋地址</th>
+									<th>缴费项目</th>
+									<th>缴费状态</th>
+									<th>支付方式</th>
+									<th>账单截止时间</th>
+									<th>账单金额（元）</th>
+									<th>优惠金额（元）</th>
+									<th>支付时间</th>
+									<th>收据状态</th>
+									<th v-on:click="resetColumnSort('receiptCode');">
+										<div class="text-box padding-right-20">
+											<div v-bind:class="['icon','icon-fill-arrow-box', 'position-right',columnName=='receiptCode' ? direction?'icon-select-fill-arrow-up':'icon-select-fill-arrow-down':'icon-fill-arrow-down']"></div>
+											收据编号
+										</div>
+									</th>
+									<th v-on:click="resetColumnSort('createTime');">
+										<div class="text-box padding-right-20">
+											<div v-bind:class="['icon','icon-fill-arrow-box', 'position-right',columnName=='createTime' ? direction?'icon-select-fill-arrow-up':'icon-select-fill-arrow-down':'icon-fill-arrow-down']"></div>
+											创建时间
+										</div>
+									</th>
+								</tr>
+							</thead>
+
+							<tbody id="tbody">
+								<tr v-for="(t,i) in dataList">
+									<td>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+									<td>{{t.id}}</td>
+									<td v-bind:title="t.scheduleName?t.scheduleName:t.remark">{{t.scheduleName?t.scheduleName:t.remark}}</td>
+									<td>{{t.address}}</td>
+									<td v-bind:title="t.feeName">{{t.feeName}}</td>
+									<td>{{t.stateText}}</td>
+									<td>{{t.payPlatform?t.payPlatformText:"无"}}</td>
+									<td>{{t.deadlineTime | resetTime(3)}}</td>
+									<td>{{t.fee}}</td>
+									<td>{{t.discountFee}}</td>
+									<td>{{t.payTime?t.payTime:"无"}}</td>
+									<td>{{t.receiptPrintText}}</td>
+									<td>{{t.receiptCode?t.receiptCode:"无"}}</td>
+									<td>{{t.createTime}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="page-box"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		param.columnName = "createTime";
+		param.direction = false;
+		loadVue(".v-dom", param);
+
+		$(function() {
+			setTime({
+				elem: "#startTime",
+				type: "date",
+				format: "yyyy-MM-dd",
+			});
+			setTime({
+				elem: "#endTime",
+				type: "date",
+				format: "yyyy-MM-dd",
+			});
+		});
+
+		//导出
+		function exportBillCollection() {
+			var parentData = setData.parentData;
+			var communityName = parentData.name;
+			var dom = $("#billCollectionExcel");
+			var fileName = communityName + "账单记录.xls";
+			var columns = "14";
+			exportExcel(dom, columns, fileName);
+		}
+
+		//加载数据
+		function loadData() {
+			var parentData = setData.parentData;
+			var columnName = setData.columnName;
+			var direction = setData.direction ? "asc" : "desc";
+			var startTime = resetTime($("#startTime").val(), 0);
+			var endTime = resetTime($("#endTime").val(), 0);
+			if(resetTimeStamp(startTime) > resetTimeStamp(endTime)) {
+				layer.msg("支付开始不能大于支付结束");
+				return false;
+			}
+			var param = {
+				page: pageNo,
+				pageSize: '1000',
+				columnName: columnName,
+				direction: direction,
+				id: $("#id").val(),
+				feeName: $("#feeName").val(),
+				state: $("#state").val(),
+				payPlatform: $("#payPlatform").val(),
+				receiptPrint: $("#receiptPrint").val(),
+				startTime: startTime,
+				endTime: endTime,
+				address: $("#address").val(),
+				communityId: parentData.id
+			}
+			request("POST", "property/billCollection/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].fee = parseFloat(dataList[i].fee).toFixed(2);
+					dataList[i].discountFee = parseFloat(dataList[i].discountFee).toFixed(2);
+					if(dataList[i].feeName.indexOf("物业费") > -1) {
+						dataList[i].remark = dataList[i].remark + "个月";
+					}
+					if(dataList[i].receiptPrint == "0") {
+						dataList[i].receiptPrintText = "未打印";
+					} else if(dataList[i].receiptPrint == "1") {
+						dataList[i].receiptPrintText = "已打印";
+					}
+					if(dataList[i].state == "0") {
+						dataList[i].stateText = "未缴费";
+					} else if(dataList[i].state == "1") {
+						dataList[i].stateText = "已缴费";
+					}
+					if(dataList[i].payPlatform == "Cash") {
+						dataList[i].payPlatformText = "现金支付";
+					} else if(dataList[i].payPlatform == "ceb") {
+						dataList[i].payPlatformText = "线上支付";
+					}
+					if(dataList[i].receiptCode) {
+						dataList[i].receiptCode = formatZero(dataList[i].receiptCode, 8);
+					}
+				}
+				setData.dataList = dataList;
+				setData.isInit = true;
+				loadPage();
+			}, function(res) {
+				layer.msg("账单加载失败");
+			});
+		}
+	</script>
+
+</html>

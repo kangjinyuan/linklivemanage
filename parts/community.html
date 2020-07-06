@@ -1,0 +1,219 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache,must-revalidate">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/area.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+		<script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15&key=bf20afe40b35aaefe32a418f194dc797"></script>
+	</head>
+
+	<body>
+		<div class="mask-box v-dom" v-cloak>
+			<div class="mask-inner-box">
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">社区名称：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="name" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">详细地址：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="address" value="" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">经度：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="longitude" value="" disabled="disabled" class="required" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">纬度：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="latitude" value="" disabled="disabled" class="required" />
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn" onclick="getLongAndLat();">获取</div>
+						</div>
+					</div>
+				</div>
+				<!--<div class="masklist" style="height: 300px;" id="container"></div>-->
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">归属地：</span></div>
+					<div class="mask-list-value">
+						<select name="province" id="province" class="required width-147"></select>
+						<select name="city" id="city" class="required width-147"></select>
+						<select name="county" id="county" class="required width-147"></select>
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">所属物业：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="pmcName" disabled="disabled" class="required" />
+						<input type="hidden" name="" id="pmcId" class="required" />
+					</div>
+					<div class="btn-box">
+						<div class="btn-inner-box">
+							<div class="btn" onclick="selectPmc();">选择</div>
+						</div>
+					</div>
+				</div>
+				<div class="mask-list c_b">
+					<div class="mask-list-name"><span class="text">预付费码：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="prepayCode" value="" />
+					</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="text">后付费码：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="postPayCode" value="" />
+					</div>
+				</div>
+				<div class="mask-list c_b">
+					<div class="mask-list-name"><span class="required-flag">*</span><span class="text">占地面积：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="area" value="" placeholder="填写数字" class="required width-80 regular-positive-number" />
+					</div>
+					<div class="mask-unit-box">km²</div>
+				</div>
+				<div class="mask-list">
+					<div class="mask-list-name"><span class="text">人口：</span></div>
+					<div class="mask-list-value">
+						<input type="text" name="" id="capacity" value="" placeholder="填写数字" class="width-80 regular-positive-int" />
+					</div>
+					<div class="mask-unit-box">人</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="save();">保存</div>
+					<div class="btn" onclick="closeMask();">返回</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		param.functionConfig = [];
+		loadVue(".v-dom", param);
+
+		$(function() {
+			new PCAS("province", "city", "county");
+		})
+		var map = new AMap.Map('container', {
+			zoom: 12,
+			center: [116.39, 39.9]
+		});
+		var MGeocoder = [];
+
+		//选择物业
+		function selectPmc(sname, sid) {
+			parent.openMask("parts/selectPmc", "选择物业", ["800px", "500px"], function(layerDom, layerIframe) {
+				var dataInfo = {
+					id: $("#pmcId").val(),
+					name: $("#pmcName").val()
+				}
+				layerIframe.dataInfo = dataInfo;
+				layerIframe.loadData();
+			});
+		}
+
+		//获取经纬度
+		function getLongAndLat() {
+			var address = $("#address").val();
+			if(address == "") {
+				layer.msg('详细地址不能为空');
+				return false;
+			}
+			map.plugin(["AMap.Geocoder"], function() { //加载地理编码插件
+				MGeocoder = new AMap.Geocoder({
+					city: "",
+				});
+				MGeocoder.getLocation(address, function(status, result) {
+					if(status === 'complete' && result.info === 'OK') {
+						$("#longitude").val(result.geocodes[0].location.lng);
+						$("#latitude").val(result.geocodes[0].location.lat);
+					} else {
+						console.log("获取经纬度失败");
+					}
+				});
+
+			});
+		}
+
+		//保存
+		function save() {
+			if(checkRegular()) {
+				var parentData = setData.parentData;
+				var functionConfig = setData.functionConfig;
+				var param = {
+					name: $("#name").val(),
+					address: $("#address").val(),
+					latitude: $("#latitude").val(),
+					longitude: $("#longitude").val(),
+					province: $("#province").val(),
+					city: $("#city").val(),
+					county: $("#county").val(),
+					pmcId: $("#pmcId").val(),
+					pmcName: $("#pmcName").val(),
+					capacity: $("#capacity").val(),
+					area: $("#area").val(),
+					prepayCode: $("#prepayCode").val(),
+					postPayCode: $("#postPayCode").val(),
+					functionConfig: functionConfig
+				};
+				if(parentData) {
+					param.id = parentData.id;
+				}
+				request("POST", "property/community/saveOrUpdate.do", param, true, function(res) {
+					closeMask();
+					parent.layer.msg("操作成功");
+					parent.loadData();
+				}, function(res) {
+					if(res.code == "0004") {
+						layer.msg("该物业社区已存在，请勿重复操作");
+					} else {
+						layer.msg("操作失败");
+					}
+				})
+			}
+		}
+
+		//加载数据
+		function loadFunctionConfig() {
+			var param = {
+				pageSize: "1000"
+			};
+			request("POST", "property/appFunction/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				var functionConfig = [];
+				for(var i = 0; i < dataList.length; i++) {
+					functionConfig.push(dataList[i].id);
+				}
+				setData.functionConfig = functionConfig;
+			}, function(res) {
+				layer.msg("菜单加载失败");
+			});
+		}
+
+		loadFunctionConfig();
+	</script>
+
+</html>

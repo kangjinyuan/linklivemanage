@@ -1,0 +1,30 @@
+[
+    {
+        "id":"1",
+        "name":"全场包邮",
+        "describe":"所有商品均无条件包邮。",
+        "sort":"999",
+        "isActive":true
+    },
+    {
+        "id":"2",
+        "name":"7天退换",
+        "describe":"商家承诺7天无理由退货。",
+        "sort":"998",
+        "isActive":true
+    },
+    {
+        "id":"3",
+        "name":"送货上门",
+        "describe":"商品将由专属管家送货上门。",
+        "sort":"997",
+        "isActive":true
+    },
+    {
+        "id":"4",
+        "name":"假一赔十",
+        "describe":"若收到商品是假冒品牌，可获得十倍赔偿。",
+        "sort":"996",
+        "isActive":true
+    }
+]

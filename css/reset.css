@@ -1,0 +1,37 @@
+@charset "utf-8";
+/*=========================Reset_start==========================*/
+body,h1,h2,h3,h4,h5,h6,div,p,dl,dt,dd,ol,ul,li,form,table,th,td,a,img,span,strong,var,em,input,textarea,select,option{margin: 0; padding: 0;}
+html,body{font-family:"宋体","微软雅黑",Arail,Tabhoma; font-size: 10px; text-align: left;}
+ul,ol{list-style: none;}
+img{border: 0;}
+input,select,textarea{outline: 0;}
+textarea{resize:none;}
+table{border-collapse: collapse; border-spacing: 0;}
+th,strong,var,em{font-weight: normal; font-style: normal;}
+a{text-decoration: none;}
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active,select:-webkit-autofill, select:-webkit-autofill:hover, select:-webkit-autofill:focus, select:-webkit-autofill:active,textarea:-webkit-autofill, textarea:-webkit-autofill:hover, textarea:-webkit-autofill:focus, textarea:-webkit-autofill:active {-webkit-transition: background-color 99999s ease-out;}
+/*a:link,a:visited,a:hover,a:active{text-decoration:none;} */
+/*==========================Reset_End===========================*/
+.f_l{
+	float: left;
+}
+.f_r{
+	float: right;
+}
+.c_l{
+	clear: left;
+}
+.c_r{
+	clear: right;
+}
+.c_b{
+	clear: both;
+}
+a,button,input,div,span,li{-webkit-tap-highlight-color:rgba(255,0,0,0);-moz-tap-highlight-color:rgba(255,0,0,0);-ms-tap-highlight-color:rgba(255,0,0,0);-o-tap-highlight-color:rgba(255,0,0,0);}
+
+@media screen and (min-width:750px){
+.app{width:100%; margin: 0 auto;}
+}
+@media (min-width:750px) and (max-width:2400px){
+.app{width:750px; margin: 0 auto;}
+}

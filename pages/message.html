@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="KJYBOX VDOM" v-cloak>
+			<div class="kjy-title">消息管理</div>
+			<div class="search-box">
+				<div class="search-text">
+					<div class="search">
+						<div class="search-name">消息内容：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="content" placeholder="输入消息内容" />
+						</div>
+					</div>
+					<div class="search">
+						<div class="search-name">消息类型：</div>
+						<div class="search-value">
+							<select name="" id="messageType">
+								<option value="">==请选择消息类型==</option>
+								<option value="0">系统消息</option>
+								<option value="1">钥匙消息</option>
+							</select>
+						</div>
+					</div>
+					<div class="search">
+						<div class="search-name">所属社区：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="communityName" placeholder="输入社区名称" />
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn icon icon-reload" onclick="reloadPage();">刷新</div>
+				<div class="btn icon icon-search" onclick="sreach();">查询</div>
+				<div v-if="communityList.length > 0" class="btn icon icon-add" v-on:click="showMessage(0,'','新建消息');">新建消息</div>
+				<div class="btn icon icon-del" onclick="del();">删除</div>
+			</div>
+			<div class="kjy-table">
+				<table>
+					<thead>
+						<tr>
+							<th class="padding20">
+								<div v-bind:class="['no-check',allIsActive?'checked':'']" v-on:click="selectAllData()"></div>序号</th>
+							<th>推送社区名称</th>
+							<th>外链地址</th>
+							<th>消息类型</th>
+							<th>消息内容</th>
+							<th>更新时间</th>
+							<th>创建时间</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+
+					<tbody id="tbody">
+						<tr v-for="(t,i) in dataList">
+							<td class="padding20">
+								<div v-bind:class="['no-check',t.isActive?'checked':'']" v-on:click="selectOneData(t)"></div>{{((currentPage-1)*pageSize)+(i+1)}}</td>
+							<td>{{t.communityName}}</td>
+							<td>{{t.url?t.url:'暂无外链地址'}}</td>
+							<td>{{t.messageTypeText}}</td>
+							<td>{{t.content}}</td>
+							<td>{{t.updateTime}}</td>
+							<td>{{t.createTime}}</td>
+							<td>
+								<div class="btn icon icon-edit" v-on:click="showMessage(1,t,'编辑消息')">编辑</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="page-box"></div>
+		</div>
+	</body>
+	<script>
+		//新建或编辑
+		function showMessage(flag, obj, title) {
+			openMask(obj.id, "../part/message", title, "400px", "360px", function(layerDom, layerIframe) {
+				layerDom.find("#messageType").val(obj.messageType);
+				layerDom.find("#url").val(obj.url);
+				layerDom.find("#comunityId").val(obj.comunityId);
+				layerDom.find("#comunityName").val(obj.comunityName);
+				layerDom.find("#content").val(obj.content);
+				judeEdit(flag, layerDom);
+			})
+		}
+
+		//删除数据
+		function del() {
+			delData("确定删除所选消息？", function(param) {
+				request('POST', '/property/message/delete.do', param, true, function(res) {
+					loadData();
+					layer.closeAll('dialog');
+				}, function(res) {
+					layer.msg("删除失败，请检查网络或重试");
+				})
+			})
+		}
+
+		//		加载数据
+		function loadData() {
+			var param = {
+				page: page,
+				content: $("#content").val(),
+				communityId: $("#communityId").val(),
+				messageType: $("#messageType").val()
+			};
+			request('POST', '/property/message/queryList.do', param, true, function(res) {
+				var dataList = res.data;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+					if(dataList[i].messageType == 0) {
+						dataList[i].messageTypeText = "系统消息";
+					} else if(dataList[i].messageType == 1) {
+						dataList[i].messageTypeText = "钥匙消息";
+					}
+				}
+				setData.allIsActive = false;
+				setData.dataList = dataList;
+			}, function() {
+				layer.msg("消息加载失败");
+			})
+		}
+
+		loadPage(0, function() {
+
+		});
+		//		loadData();
+	</script>
+
+</html>

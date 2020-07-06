@@ -1,0 +1,231 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>邻客综合管理平台</title>
+		<meta name="keywords" content="">
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		<meta http-equiv="Expires" content="0">
+		<link rel="shortcut icon" href="../img/logo.png" type="image/x-icon" />
+		<link rel="stylesheet" href="../css/reset.css" />
+		<link rel="stylesheet" href="../css/common.css?v=890428a1a1" />
+		<script src="../js/jquery-1.9.1.min.js"></script>
+		<script src="../layui/layui.all.js"></script>
+		<script src="../js/vue.min.js"></script>
+		<script src="../js/requestUrl.js?v=3bb6a59ab6"></script>
+		<script src="../js/common.js?v=ac90fbe080"></script>
+	</head>
+
+	<body>
+		<div class="kjy-box kjy-flex-box v-dom" v-cloak>
+			<div class="search-box">
+				<div class="search-row-box">
+					<div class="search-list">
+						<div class="search-name">广告名称：</div>
+						<div class="search-value">
+							<input type="text" name="" value="" id="name" placeholder="广告名称" />
+						</div>
+					</div>
+					<div class="search-list">
+						<div class="search-name">发布类别：</div>
+						<div class="search-value">
+							<select name="" id="releaseType" v-on:change="search();">
+								<option value="">全部</option>
+								<option value="1">社区</option>
+								<option value="2">门禁</option>
+							</select>
+						</div>
+					</div>
+					<div class="search-btn-box">
+						<div class="btn" onclick="search();">查询</div>
+						<div class="btn" onclick="reloadPage();">重置</div>
+					</div>
+				</div>
+			</div>
+			<div class="btn-box">
+				<div class="btn-inner-box">
+					<div class="btn" onclick="advertisement();">新建</div>
+					<div class="btn" onclick="del();">删除</div>
+				</div>
+			</div>
+			<div class="kjy-data-box" v-if="isInit">
+				<div class="no-data-box" v-if="dataList.length == 0">
+					<div class="no-data-inner-box">
+						<div class="icon icon-no-data"></div>
+						<div class="no-data-text">暂时没有广告哦</div>
+					</div>
+				</div>
+				<div class="kjy-data-inner-box" v-else>
+					<div class="kjy-table">
+						<table>
+							<thead>
+								<tr>
+									<th class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',allIsActive?'icon-checked':'']" v-on:click="selectAllData()"></div>序号</th>
+									<th>广告名称</th>
+									<th>发布类别</th>
+									<th>开始时间</th>
+									<th>结束时间</th>
+									<th>发布状态</th>
+									<th>备注</th>
+									<th>创建时间</th>
+									<th>操作</th>
+								</tr>
+							</thead>
+
+							<tbody id="tbody">
+								<tr v-for="(t,i) in dataList">
+									<td class="padding-left-56">
+										<div v-bind:class="['icon','icon-check-box','position-left',t.isActive?'icon-checked':'']" v-on:click="selectOneData(t)"></div>{{((pageNo-1)*pageSize)+(i+1)}}</td>
+									<td v-bind:title="t.name">{{t.name}}</td>
+									<td>{{t.releaseTypeText}}</td>
+									<td>{{t.startTime | resetTime(3)}}</td>
+									<td>{{t.endTime | resetTime(3)}}</td>
+									<td>{{t.stateText}}</td>
+									<td v-bind:title="t.memo?t.memo:'无'">{{t.memo?t.memo:"无"}}</td>
+									<td>{{t.createTime}}</td>
+									<td>
+										<ul class="opera-box">
+											<li v-on:click="advertisement(t);">编辑</li>
+											<li v-on:click="publish(t);" v-if="t.state == '0'">发布</li>
+										</ul>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="page-box"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		param.releaseIdList = [];
+		loadVue(".v-dom", param);
+
+		//发布
+		function publish(obj) {
+			var param = {
+				id: obj.id
+			};
+			request("POST", "facility/advertisement/synchronise.do", param, true, function(res) {
+				loadData();
+				layer.msg("发布成功");
+			}, function(res) {
+				layer.msg("发布失败");
+			})
+		}
+
+		function advertisement(obj) {
+			if(obj) {
+				var title = "编辑广告";
+			} else {
+				var title = "新建广告";
+			}
+			openMask("parts/advertisement", title, ["612px", "500px"], function(layerDom, layerIframe) {
+				layerIframe.uploadImageInit();
+				layerIframe.uploadVideoInit();
+				if(obj) {
+					layerIframe.setData.parentData = obj;
+					var releaseType = obj.releaseType;
+					var releaseIdList = obj.releaseIdList;
+					layerIframe.setData.releaseType = releaseType;
+					if(releaseType == "1") {
+						layerIframe.setData.communityIdList = releaseIdList;
+						layerIframe.loadCommunity();
+					} else {
+						layerIframe.setData.doorMasterIdList = releaseIdList;
+						layerIframe.loadDoorMaster();
+					}
+					layerDom.find("#releaseType").val(releaseType);
+					layerDom.find("#name").val(obj.name);
+					layerDom.find("#startTime").val(resetTime(obj.startTime, 3));
+					layerDom.find("#endTime").val(resetTime(obj.endTime, 3));
+					var videoList = obj.videoList;
+					if(videoList) {
+						for(var i = 0; i < videoList.length; i++) {
+							layerDom.find(".upload-video").eq(i).parents(".btn-box").siblings().find("video").attr("src", videoList[i]);
+						}
+					}
+					var imageList = obj.imageList;
+					if(imageList) {
+						for(var i = 0; i < imageList.length; i++) {
+							layerDom.find(".upload-img").eq(i).parents(".btn-box").siblings().find("img").attr("src", imageList[i]);
+						}
+					}
+					layerDom.find("#playInterval").val(obj.playInterval);
+					layerDom.find("#memo").val(obj.memo);
+				}
+			})
+		}
+
+		//删除
+		function del() {
+			if(idList.length == 0) {
+				layer.msg("请选择广告");
+				return false;
+			}
+			openConfirm("确定删除所选广告吗？", function() {
+				var param = {
+					idList: idList
+				}
+				request("POST", "facility/advertisement/delete.do", param, true, function(res) {
+					loadData();
+					layer.closeAll("dialog");
+				}, function(res) {
+					layer.msg("删除失败");
+				});
+			});
+		}
+
+		//加载数据
+		function loadData() {
+			var param = {
+				page: pageNo,
+				name: $("#name").val(),
+				releaseType: $("#releaseType").val()
+			};
+			request("POST", "facility/advertisement/v2/queryList.do", param, true, function(res) {
+				var dataList = res.data.dataList;
+				for(var i = 0; i < dataList.length; i++) {
+					dataList[i].isActive = false;
+					var imageList = dataList[i].imageList;
+					if(imageList) {
+						for(var j = 0; j < imageList.length; j++) {
+							imageList[j] = imageUrl + imageList[j];
+						}
+					}
+					var videoList = dataList[i].videoList;
+					if(videoList) {
+						for(var j = 0; j < videoList.length; j++) {
+							videoList[j] = videoUrl + videoList[j];
+						}
+					}
+					if(dataList[i].releaseType == "1") {
+						dataList[i].releaseTypeText = "社区";
+					} else if(dataList[i].releaseType == "2") {
+						dataList[i].releaseTypeText = "门禁";
+					}
+					if(dataList[i].state == "0") {
+						dataList[i].stateText = "未发布";
+					} else if(dataList[i].state == "1") {
+						dataList[i].stateText = "已发布";
+					}
+				}
+				setData.dataList = dataList;
+				setData.allIsActive = false;
+				setData.isInit = true;
+				loadPage();
+			}, function() {
+				layer.msg("广告加载失败");
+			})
+		}
+
+		loadData();
+	</script>
+
+</html>
